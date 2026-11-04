@@ -1,0 +1,912 @@
+# SteaMidra - Steam game setup and manifest tool (SFF)
+# Copyright (c) 2025-2026 Midrag (https://github.com/Midrags)
+#
+# This file is part of SteaMidra.
+#
+# SteaMidra is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# SteaMidra is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with SteaMidra.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Native Steam CDN depot downloader — no .NET, no DDMod, pure Python.
+
+Replaces ``dotnet DepotDownloaderMod.dll`` on Linux by downloading
+depot content directly from Steam CDN servers over HTTPS.  Uses the
+existing ``steam`` Python library for anonymous Steam login and CDN
+server discovery, then fetches manifests and content chunks with
+plain HTTP, handling AES-256-CBC decryption and LZMA/Zstd
+decompression in-process.
+
+The Steam CDN protocol is publicly documented by Valve and
+re-implemented in dozens of open-source tools (SteamKit2,
+DepotDownloader, SteamCMD).  Every line here is original Python
+written against those protocol specs.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import io
+import logging
+import os
+import re
+import struct
+import threading
+import time
+import zipfile
+import zlib
+from pathlib import Path
+from typing import Callable
+
+
+class _SpeedThrottle:
+    """Shared leaky-bucket pacing over wire bytes across the worker pool.
+
+    rate is bytes/second; 0 disables it (acquire returns instantly). A chunk
+    is bought before its bytes are decrypted/written, so the cap tracks the
+    CDN rate rather than the inflated decompressed size.
+
+    ponytail: pacing is per-chunk (the whole chunk is bought at once), so a
+    burst can overshoot the cap by up to MAX_WORKERS chunk sizes before
+    settling. Chunks are ~1 MB, good enough for a politeness limiter.
+    Upgrade path: stream the GET and acquire incrementally.
+    """
+
+    def __init__(self, rate: int):
+        self.rate = max(0, int(rate))
+        self._tokens = float(self.rate)
+        self._last = time.monotonic()
+        self._lock = threading.Lock()
+
+    def acquire(self, n: int, should_stop=None) -> bool:
+        if self.rate <= 0 or n <= 0:
+            return False
+        with self._lock:
+            now = time.monotonic()
+            self._tokens = min(float(self.rate), self._tokens + (now - self._last) * self.rate)
+            self._last = now
+            self._tokens -= n
+            wait = -self._tokens / self.rate if self._tokens < 0 else 0.0
+        # Sleep off-lock so the other workers advance the bucket in parallel
+        # and each pays only for its own slice of the debt.
+        end = time.monotonic() + wait
+        while wait > 0:
+            if should_stop is not None and should_stop():
+                return True
+            time.sleep(min(wait, 0.05))
+            wait = end - time.monotonic()
+        return False
+
+
+_throttle_lock = threading.Lock()
+_shared_throttle = [None, None]  # [rate, throttle]
+
+
+def _read_speed_limit() -> int:
+    try:
+        from sff.core.storage.settings import get_setting
+        from sff.core.structs import Settings
+        raw = get_setting(Settings.DOWNLOAD_SPEED_LIMIT_MB)
+        mb = float(raw) if raw not in (None, "") else 0.0
+    except Exception:
+        return 0
+    return int(mb * 1024 * 1024) if mb > 0 else 0
+
+
+def _get_throttle() -> _SpeedThrottle:
+    # One bucket for the process: parallel depot downloads share the cap,
+    # and a new setting value takes effect on the next download.
+    rate = _read_speed_limit()
+    with _throttle_lock:
+        if _shared_throttle[1] is None or _shared_throttle[0] != rate:
+            _shared_throttle[0] = rate
+            _shared_throttle[1] = _SpeedThrottle(rate)
+        return _shared_throttle[1]
+
+import httpx
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+PAYLOAD_MAGIC = 0x71F617D0
+METADATA_MAGIC = 0x1F4812BE
+SIGNATURE_MAGIC = 0x1B81B817
+END_MAGIC = 0x32C415AB
+
+_CDN_TIMEOUT = 60.0
+_CHUNK_RETRIES = 3
+
+# ---------------------------------------------------------------------------
+# AES-256 symmetric decrypt (Valve depot encryption)
+#   — first 16 bytes = AES-256-ECB(IV)
+#   — remaining bytes = AES-256-CBC(body, IV)
+# ---------------------------------------------------------------------------
+
+def _aes_symmetric_decrypt(ciphertext: bytes, key: bytes) -> bytes:
+    if len(ciphertext) < 16:
+        raise ValueError("ciphertext too short for AES")
+    iv_block = ciphertext[:16]
+    body = ciphertext[16:]
+    ecb = AES.new(key, AES.MODE_ECB)
+    iv = ecb.decrypt(iv_block)
+    cbc = AES.new(key, AES.MODE_CBC, iv=iv)
+    return unpad(cbc.decrypt(body), 16)
+
+
+# ---------------------------------------------------------------------------
+# Manifest decoding
+# ---------------------------------------------------------------------------
+
+def _unzip_single(zip_bytes: bytes) -> bytes:
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        return zf.read(zf.namelist()[0])
+
+
+def _decrypt_filename(encoded: str, key: bytes) -> str:
+    import base64
+    stripped = "".join(c for c in encoded if not c.isspace())
+    raw = base64.b64decode(stripped)
+    plain = _aes_symmetric_decrypt(raw, key)
+    end = plain.find(0)
+    return (plain[:end] if end >= 0 else plain).decode("utf-8")
+
+
+def decode_manifest(raw_manifest: bytes, depot_key: bytes) -> dict:
+    """Decrypt and parse a depot manifest, returning a plain dict."""
+    from steam.protobufs.content_manifest_pb2 import (  # type: ignore
+        ContentManifestMetadata,
+        ContentManifestPayload,
+    )
+
+    if raw_manifest[:4] == b"PK\x03\x04":
+        raw_manifest = _unzip_single(raw_manifest)
+
+    buf = io.BytesIO(raw_manifest)
+
+    def _section(magic: int) -> bytes:
+        m, l = struct.unpack("<II", buf.read(8))
+        if m != magic:
+            raise ValueError(f"section magic 0x{m:08X} != 0x{magic:08X}")
+        return buf.read(l)
+
+    payload_bytes = _section(PAYLOAD_MAGIC)
+    meta_bytes = _section(METADATA_MAGIC)
+    _section(SIGNATURE_MAGIC)
+
+    end = struct.unpack("<I", buf.read(4))[0]
+    if end != END_MAGIC:
+        raise ValueError(f"end magic 0x{end:08X}")
+
+    payload = ContentManifestPayload()
+    payload.ParseFromString(payload_bytes)
+    meta = ContentManifestMetadata()
+    meta.ParseFromString(meta_bytes)
+
+    fn_encrypted = meta.filenames_encrypted
+
+    mappings = []
+    for m in payload.mappings:
+        fn = m.filename or ""
+        if fn_encrypted and fn:
+            fn = _decrypt_filename(fn, depot_key)
+        chunks = []
+        for ch in m.chunks:
+            chunks.append({
+                "sha": ch.sha.hex() if ch.sha else "",
+                "offset": ch.offset or 0,
+                "cb_original": ch.cb_original or 0,
+                "cb_compressed": ch.cb_compressed or 0,
+            })
+        mappings.append({
+            "filename": fn,
+            "size": m.size or 0,
+            "flags": m.flags or 0,
+            "chunks": chunks,
+        })
+
+    return {"mappings": mappings}
+
+
+# ---------------------------------------------------------------------------
+# Chunk decompression
+# ---------------------------------------------------------------------------
+
+def _decompress_vz1(data: bytes) -> bytes:
+    """VZ1 = LZMA1 raw + CRC32 footer.  Mirrors valve's on-disk format.
+
+    Layout: | 3 header 'VZa' | 4 skip | 5 LZMA props | body | 10 footer |
+    Footer:  | 4 CRC32 LE | 4 uncompressed size LE | 2 'zv' |
+    """
+    import lzma
+    if len(data) < 22 or data[:3] != b"VZa" or data[-2:] != b"zv":
+        raise ValueError("invalid VZ1 container")
+
+    lzma_filter = lzma._decode_filter_properties(lzma.FILTER_LZMA1, data[7:12])
+    decomp = lzma.LZMADecompressor(lzma.FORMAT_RAW, filters=[lzma_filter])
+
+    body_end = len(data) - 10
+    lzma_body = data[12:body_end]
+    expected_crc, expected_size = struct.unpack("<II", data[body_end:body_end + 8])
+
+    out = decomp.decompress(lzma_body, max_length=expected_size)
+    if len(out) != expected_size:
+        raise ValueError(f"VZ1 size {len(out)} != {expected_size}")
+    actual = zlib.crc32(out) & 0xFFFFFFFF
+    if actual != expected_crc:
+        raise ValueError(f"VZ1 CRC 0x{actual:08X} != 0x{expected_crc:08X}")
+    return out
+
+
+def _decompress_vzstd(data: bytes) -> bytes:
+    """VSZTD = Zstd with CRC32 verification.
+
+    Layout: | 4 'VSZa' | 4 CRC32 LE | body | 4 CRC32 LE | 8 size LE | 3 'zsv' |
+    """
+    HDR, TRL = 8, 15
+    if len(data) < HDR + TRL or data[:4] != b"VSZa" or data[-3:] != b"zsv":
+        raise ValueError("invalid VSZTD container")
+    hdr_crc = struct.unpack("<I", data[4:8])[0]
+    trl_start = len(data) - TRL
+    ftr_crc = struct.unpack("<I", data[trl_start:trl_start + 4])[0]
+    expected_size = struct.unpack("<Q", data[trl_start + 4:trl_start + 12])[0]
+    if hdr_crc != ftr_crc:
+        raise ValueError(f"VSZTD CRC 0x{hdr_crc:08X} != 0x{ftr_crc:08X}")
+    compressed = data[HDR:trl_start]
+    try:
+        import zstandard
+        out = zstandard.decompress(compressed, max_output_size=expected_size)
+    except ImportError:
+        import subprocess, tempfile
+        ti = tempfile.NamedTemporaryFile(suffix=".zst", delete=False)
+        to_ = tempfile.NamedTemporaryFile(suffix=".raw", delete=False)
+        ti.write(compressed); ti.close(); to_.close()
+        subprocess.run(["zstd", "-d", "-f", "-o", to_.name, ti.name],
+                       capture_output=True, timeout=60)
+        out = Path(to_.name).read_bytes()
+        os.unlink(ti.name); os.unlink(to_.name)
+    if len(out) != expected_size:
+        raise ValueError(f"VSZTD size {len(out)} != {expected_size}")
+    actual = zlib.crc32(out) & 0xFFFFFFFF
+    if actual != hdr_crc:
+        raise ValueError(f"VSZTD CRC 0x{actual:08X} != 0x{hdr_crc:08X}")
+    return out
+
+
+def _decompress_chunk(data: bytes) -> bytes:
+    if data[:3] == b"VZa":
+        return _decompress_vz1(data)
+    if data[:4] == b"VSZa":
+        return _decompress_vzstd(data)
+    if data[:4] == b"PK\x03\x04":
+        return _unzip_single(data)
+    raise ValueError(f"unknown chunk magic: {data[:4].hex()}")
+
+
+# ---------------------------------------------------------------------------
+# CDN helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_request_code(
+    cdn_client,
+    app_id: int, depot_id: int, manifest_id: int,
+    print_fn: Callable,
+) -> int:
+    try:
+        code = cdn_client.get_manifest_request_code(
+            app_id=app_id, depot_id=depot_id, manifest_gid=manifest_id,
+        )
+        if code:
+            return code
+    except Exception:
+        pass
+    # No external request-code mirrors anymore: they (steam.run / wudrm /
+    # opensteamtool) were retired. A manifest the Steam session can't code
+    # for arrives as raw bytes instead — Free Providers seeds depotcache
+    # from the GitHub manifest mirrors before native ever runs.
+    raise RuntimeError(f"No manifest request code for depot {depot_id}")
+
+
+def _get_cdn_servers(cdn_client) -> list:
+    # cdn.servers is a deque of ContentServer objects (not a list of dicts),
+    # so the old isinstance(raw, list) check always failed and native fell
+    # back to one hardcoded host that 504s on most depots. Normalize to the
+    # dict shape the rest of this module reads.
+    try:
+        raw = list(cdn_client.servers)
+    except Exception:
+        raw = []
+    out = []
+    for s in raw:
+        if isinstance(s, dict):
+            out.append(s)
+            continue
+        host = getattr(s, "host", None)
+        if not host:
+            continue
+        port = getattr(s, "port", 0) or 0
+        https = getattr(s, "https", False)
+        if not port:
+            port = 443 if https else 80
+        # fold non-standard ports into the host so every URL builder works
+        hp = f"{host}:{port}" if port not in (80, 443) else host
+        out.append({
+            "host": hp,
+            "probe_host": host,
+            "probe_port": port,
+            "https_support": "mandatory" if https else "optional",
+            "NumEntries": 1,
+        })
+    if out:
+        ranked = _probe_servers(out)
+        logger.debug(
+            "cdn: %d servers, best-first: %s",
+            len(ranked), ", ".join(s.get("host", "?") for s in ranked[:6]),
+        )
+        return ranked
+    # Fallback: well-known Steam CDN host
+    logger.debug("cdn: empty server list from CM, falling back to steampipe")
+    return [{"host": "steampipe.akamaized.net"}]
+
+
+def _probe_servers(servers: list) -> list:
+    # Steam's cell list is ordered by their load metrics, not by what is
+    # actually fast for this user; a stalled host at the front slows the
+    # manifest and every chunk mapped to it. Rank by TCP connect latency.
+    import socket
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _latency(s):
+        # TCP connect is not enough: hosts that accept then stall on reads
+        # (steampipe.akamaized.net) win a connect-only probe. Any HTTP
+        # response, even 404 for the fake chunk id, proves the host serves.
+        host = s.get("probe_host") or s.get("host", "").split(":")[0]
+        port = s.get("probe_port") or 80
+        scheme = "https" if s.get("https_support") == "mandatory" else "http"
+        url = f"{scheme}://{host}:{port}/depot/0/chunk/{'0' * 40}"
+        best = None
+        for _ in range(2):
+            t0 = time.monotonic()
+            try:
+                httpx.get(url, timeout=2.5, follow_redirects=True)
+                dt = time.monotonic() - t0
+                best = dt if best is None else min(best, dt)
+            except Exception:
+                continue
+        return best if best is not None else float("inf")
+
+    try:
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            lat = list(ex.map(_latency, servers))
+    except Exception:
+        return servers
+    order = sorted(range(len(servers)), key=lambda i: lat[i])
+    return [servers[i] for i in order]
+
+
+def _download_file(url: str, timeout: float = _CDN_TIMEOUT) -> bytes | None:
+    try:
+        resp = httpx.get(url, timeout=timeout, follow_redirects=True)
+        if resp.status_code == 200 and resp.content:
+            return resp.content
+    except Exception:
+        pass
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def _normalize_manifest_path(filename: str) -> str | None:
+    r"""Normalize a manifest filename into a safe POSIX-style relative path.
+
+    Steam manifests store paths with Windows backslash separators. On
+    Linux a backslash is a legal filename character, so joining the raw
+    name once created single flat files like ``Some\File\Name.exe``
+    instead of subdirectories. Returns the normalized relative path, or
+    None when the path is empty or tries to escape via ``..``.
+    """
+    if not filename:
+        return None
+    cleaned = str(filename).replace("\\", "/")
+    parts = []
+    for part in cleaned.split("/"):
+        part = part.strip()
+        if not part or part in (".",):
+            continue
+        if part == "..":
+            return None
+        parts.append(part)
+    if not parts:
+        return None
+    return "/".join(parts)
+
+
+def _path_selected(norm: str, include_dirs: list[str]) -> bool:
+    norm_l = norm.lower()
+    return any(norm_l == d or norm_l.startswith(d + "/") for d in include_dirs)
+
+
+def download_depot(
+    app_id: int | str,
+    depot_id: int | str,
+    manifest_id: int | str,
+    depot_key: str,
+    output_dir: Path | str,
+    *,
+    print_fn: Callable = print,
+    os_filter: str = "",
+    steam_path: Path | str | None = None,
+    manifest_bytes: bytes | None = None,
+    manifest_path: Path | str | None = None,
+    cancel_app_id: int | str | None = None,
+    include_dirs: list[str] | None = None,
+) -> tuple[bool, int]:
+    """Download one Steam depot directly from CDN (no .NET).
+
+    If *manifest_bytes* or *manifest_path* is provided the manifest is
+    used directly (no CDN manifest fetch), which is required when the
+    Steam account does not own the game.  The manifest content is
+    AES-256-CBC encrypted by Valve and will be decrypted in-process.
+
+    *app_id* is the depot's owning app (used for CDN auth + request
+    code); *cancel_app_id* is the app the download queue tracks, which
+    differs when a DLC lua pulls the base game's depots.
+    """
+    app_id = int(app_id)
+    _cancel_app_id = int(cancel_app_id) if cancel_app_id is not None else app_id
+    depot_id = int(depot_id)
+    manifest_gid = int(manifest_id)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    key_bytes = bytes.fromhex(depot_key)
+    if len(key_bytes) != 32:
+        raise ValueError(f"depot key must be 32 bytes, got {len(key_bytes)}")
+
+    # ── Steam connection ──────────────────────────────────
+    from steam.client import SteamClient  # type: ignore
+    from steam.client.cdn import CDNClient  # type: ignore
+
+    client = SteamClient()
+    try:
+        client.anonymous_login()
+    except Exception:
+        time.sleep(2)
+        client.anonymous_login()
+
+    cdn = CDNClient(client)
+    servers = _get_cdn_servers(cdn)
+    if not servers:
+        client.disconnect()
+        return False, 0
+
+    # ── CDN auth token (needed for chunk downloads) ────────
+    auth_token = ""
+    for s in servers:
+        host = s.get("host", "") if isinstance(s, dict) else str(s)
+        if not host:
+            continue
+        try:
+            token = cdn.get_auth_token(app_id=app_id, depot_id=depot_id, host=host)
+            if token:
+                auth_token = token
+                break
+        except Exception:
+            pass
+
+    # ── Manifest (local or CDN) ────────────────────────────
+    if manifest_path:
+        manifest_bytes = Path(manifest_path).read_bytes()
+    if manifest_bytes:
+        print_fn(f"[native] Using provided manifest ({len(manifest_bytes)} bytes)")
+
+    if manifest_bytes is None or len(manifest_bytes) == 0:
+        # ── Request code ──────────────────────────────────
+        request_code = _resolve_request_code(cdn, app_id, depot_id, manifest_gid, print_fn)
+
+        # ── Download manifest from CDN ────────────────────
+        last_err = ""
+        for s in servers:
+            host = s.get("host", "") if isinstance(s, dict) else str(s)
+            if not host:
+                continue
+            scheme = "https" if isinstance(s, dict) and s.get("https_support") == "mandatory" else "http"
+            url = f"{scheme}://{host}/depot/{depot_id}/manifest/{manifest_gid}/5/{request_code}{auth_token}"
+            data = _download_file(url)
+            if data:
+                manifest_bytes = data
+                print_fn(f"[native] Manifest from {host}")
+                break
+            last_err = f"HTTP error from {host}"
+
+        if manifest_bytes is None or len(manifest_bytes) == 0:
+            client.disconnect()
+            print_fn(f"[native] Manifest download failed: {last_err}")
+            return False, 0
+
+    # ── Decrypt manifest ──────────────────────────────────
+    try:
+        manifest = decode_manifest(manifest_bytes, key_bytes)
+    except Exception as e:
+        client.disconnect()
+        print_fn(f"[native] Manifest decrypt failed: {e}")
+        return False, 0
+
+    mappings = manifest.get("mappings", [])
+    # Lowercase normalized include-paths for the selective-download filter.
+    # Empty list = everything selected; None = filter not active.
+    _inc_dirs = None
+    if include_dirs is not None:
+        _inc_dirs = [_normalize_manifest_path(p) for p in include_dirs]
+        _inc_dirs = [p.lower() for p in _inc_dirs if p]
+        kept = [m for m in mappings
+                if _normalize_manifest_path(m.get("filename", ""))
+                and _path_selected(_normalize_manifest_path(m["filename"]), _inc_dirs)]
+        if not kept:
+            client.disconnect()
+            print_fn("[native] File selection matched no files in this depot - nothing to download")
+            return False, 0
+        mappings = kept
+        print_fn(f"[native] Selective download: {len(mappings)} of the depot's files selected")
+    total_chunks = sum(len(m.get("chunks", [])) for m in mappings)
+    total_size = sum(m.get("size", 0) for m in mappings)
+    print_fn(f"[native] {len(mappings)} files, {total_chunks} chunks, {total_size:,} bytes")
+
+    # ── Build flat chunk list + pre-verify ─────────────────
+    # Each entry: (sha, offset, cb_original, file_path)
+    all_flat: list[tuple[str, int, int, Path]] = []
+    os_filtered_count = 0
+
+    for mapping in mappings:
+        filename = _normalize_manifest_path(mapping.get("filename", ""))
+        flags = mapping.get("flags", 0)
+        if flags & 0x40 or not filename:
+            continue
+        if os_filter and os_filter != "all":
+            lo = filename.lower()
+            if os_filter == "linux":
+                if "/win" in lo and "/window" not in lo:
+                    os_filtered_count += 1; continue
+            elif os_filter == "windows":
+                if lo.endswith((".so", ".dylib")):
+                    os_filtered_count += 1; continue
+                if re.search(r"/(linux|osx|mac)/", lo):
+                    os_filtered_count += 1; continue
+
+        file_path = output_dir / filename
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_size = mapping.get("size", 0)
+        if file_size and not file_path.exists():
+            try:
+                with open(file_path, "wb") as f:
+                    f.truncate(file_size)
+            except OSError:
+                pass
+
+        for chunk in mapping.get("chunks", []):
+            sha = chunk.get("sha", "")
+            if not sha:
+                continue
+            all_flat.append((sha, chunk.get("offset", 0),
+                             chunk.get("cb_original", 0), file_path))
+
+    # ── Pre-verify: SHA1-check existing chunks ───────────
+    verified_sha: set[str] = set()
+    _verify_total = len(all_flat)
+    _last_verify_print = time.monotonic()
+    for i, (sha, offset, cb_original, fpath) in enumerate(all_flat):
+        now = time.monotonic()
+        if now - _last_verify_print >= 1.0:
+            print_fn(f"[native] Verifying {i}/{_verify_total} chunks")
+            _last_verify_print = now
+        try:
+            if not fpath.exists():
+                continue
+            fsize = fpath.stat().st_size
+            if offset + cb_original > fsize:
+                continue
+            with open(fpath, "rb") as vf:
+                vf.seek(offset)
+                disk_data = vf.read(cb_original)
+            if hashlib.sha1(disk_data).hexdigest() == sha:
+                verified_sha.add(sha)
+        except OSError:
+            continue
+
+    pending = [(s, o, c, p) for s, o, c, p in all_flat if s not in verified_sha]
+    skipped = len(verified_sha)
+    pending_bytes = sum(c for _, _, c, _ in pending)
+    if skipped:
+        print_fn(f"[native] {skipped}/{total_chunks} chunks already on disk (skipping)")
+
+    if not pending:
+        client.disconnect()
+        print_fn(f"[native] Depot {depot_id} fully cached: {skipped} chunks, 0 downloaded")
+        return True, total_size
+
+    # ── Server pool (sorted by load preference) ───────────
+    # _probe_servers already ranked these best-first. Round-robin below
+    # spreads chunks evenly across the pool, so including every server
+    # means ~1/N of chunks land on a slow host and dominate wall-clock
+    # (a 54 GB depot crawled at 53 KB/s while DDMod hit 12 MB/s on the
+    # same list). Keep only the top few; the retry loop still rotates to
+    # the rest if a top host fails.
+    server_hosts: list[str] = []
+    for s in servers:
+        host = s.get("host", "") if isinstance(s, dict) else str(s)
+        if not host:
+            continue
+        entries = s.get("NumEntries", 1) if isinstance(s, dict) else 1
+        for _ in range(max(entries, 1)):
+            server_hosts.append(host)
+    if not server_hosts:
+        server_hosts = ["steampipe.akamaized.net"]
+    _all_hosts = server_hosts
+    server_hosts = server_hosts[:4]
+    logger.debug(
+        "cdn pool: %d hosts available, using top %d: %s",
+        len(_all_hosts), len(server_hosts), ", ".join(server_hosts),
+    )
+
+    host_for_chunk: dict[str, str] = {}
+    host_idx = 0
+    for sha, _, _, _ in pending:
+        host_for_chunk[sha] = server_hosts[host_idx % len(server_hosts)]
+        host_idx += 1
+
+    # ── Shared HTTP client (keep-alive pooling) ───────────
+    import concurrent.futures
+    import threading
+
+    http_client = httpx.Client(
+        # read=15s: a stalled CDN connection must fail over to the next
+        # server quickly, or all 32 workers hang and the UI freezes.
+        timeout=httpx.Timeout(connect=15.0, read=15.0, write=15.0, pool=15.0),
+        limits=httpx.Limits(max_keepalive_connections=64, max_connections=128),
+        follow_redirects=True,
+    )
+
+    done_lock = threading.Lock()
+    total_done = [0]
+    total_bytes = [0]
+    # Compressed bytes actually pulled from the CDN. total_bytes counts
+    # decompressed writes (correct for progress vs manifest size) but is
+    # ~2-4x the wire rate on zstd chunks, so speed must use this instead.
+    wire_bytes = [0]
+    fatal_error = [None]
+    _stop = threading.Event()
+    throttle = _get_throttle()
+    if throttle.rate:
+        print_fn(f"[native] Speed limit: {throttle.rate / (1024 * 1024):.1f} MB/s")
+    else:
+        logger.debug("native download: no speed limit configured")
+
+    def _abort():
+        # Unblock every worker fast: the flag breaks the retry loop and the
+        # interruptible sleeps, and closing the client raises in any thread
+        # blocked on a read. Without this, the executor's implicit
+        # shutdown(wait=True) hangs on stalled CDN connections and DDMod
+        # never takes over.
+        _stop.set()
+        try:
+            http_client.close()
+        except Exception:
+            pass
+
+    def _cancelled():
+        if _stop.is_set():
+            return True
+        try:
+            from sff.game import download_queue as _dq
+            return _dq.is_cancelled(_cancel_app_id)
+        except Exception:
+            return False
+
+    # Park between chunks while paused so resume is instant (no re-verify).
+    try:
+        from sff.game import download_queue as _dq
+        _pause_gate = _dq.register_pause_gate(_cancel_app_id)
+    except Exception:
+        _pause_gate = None
+
+    def _wait_pause():
+        """True if the worker should abort (cancel arrived while parked)."""
+        if _pause_gate is None:
+            return _cancelled()
+        try:
+            from sff.game import download_queue as _dq
+            if _dq.wait_while_paused(_cancel_app_id):
+                return True
+        except Exception:
+            pass
+        return _cancelled()
+
+    def _download_one_chunk(sha: str, offset: int, cb_original: int, fpath: Path) -> int:
+        """Downloads one chunk. Returns bytes written or -1 on failure."""
+        if fatal_error[0] is not None:
+            return -1
+        if _wait_pause():
+            return -2
+
+        host = host_for_chunk.get(sha, server_hosts[0])
+        use_https = any(
+            isinstance(s, dict) and s.get("https_support") == "mandatory" and s.get("host") == host
+            for s in servers
+        )
+        scheme = "https" if use_https else "http"
+
+        chunk_data = None
+        for retry in range(_CHUNK_RETRIES):
+            if _stop.is_set():
+                return -2
+            cur_host = server_hosts[(server_hosts.index(host) + retry) % len(server_hosts)]
+            if retry > 0 and _stop.wait(min(0.25 * (2 ** retry), 15.0)):
+                return -2
+            url = f"{scheme}://{cur_host}/depot/{depot_id}/chunk/{sha}{auth_token}"
+            try:
+                resp = http_client.get(url)
+                if resp.status_code == 200 and resp.content:
+                    chunk_data = resp.content
+                    break
+            except Exception:
+                continue
+
+        if chunk_data is None:
+            return -1
+
+        if throttle.acquire(len(chunk_data), _cancelled):
+            return -2
+
+        try:
+            dec = _aes_symmetric_decrypt(chunk_data, key_bytes)
+            raw = _decompress_chunk(dec)
+        except Exception:
+            return -1
+
+        if hashlib.sha1(raw).hexdigest() != sha:
+            return -1
+
+        try:
+            with open(fpath, "r+b") as f:
+                f.seek(offset)
+                f.write(raw)
+        except OSError:
+            return -1
+
+        n = len(raw)
+        with done_lock:
+            total_bytes[0] += n
+            total_done[0] += 1
+            wire_bytes[0] += len(chunk_data)
+        return n
+
+    # ── Concurrent chunk download ─────────────────────────
+    try:
+        from sff.core.storage.settings import get_setting
+        from sff.core.structs import Settings
+        val = get_setting(Settings.DOWNLOAD_CONCURRENCY)
+        MAX_WORKERS = min(max(int(val) if val else 32, 8), 64)
+    except Exception:
+        MAX_WORKERS = 32
+    print_fn(f"[native] Downloading {len(pending)} chunks ({MAX_WORKERS} concurrent)...")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {}
+        for sha, offset, cb_original, fpath in pending:
+            fut = executor.submit(_download_one_chunk, sha, offset, cb_original, fpath)
+            futures[fut] = sha
+
+        total = len(pending)
+        _last_prog_t = [0.0]
+        _ema_speed = [0.0]
+        _prog_start = [0.0]
+
+        def _emit_prog(force=False):
+            # Heartbeat-driven, NOT chunk-gated: when all workers stall on
+            # slow CDN connections no chunk completes, and a chunk-gated
+            # line freezes the UI for minutes. Speed is an EMA of the
+            # last-second rate so it reflects what's happening now, not
+            # the average since start (a cached-chunk burst once showed
+            # 129 MB/s on a 6 MB/s line).
+            _now = time.monotonic()
+            if not force and _now - _last_prog_t[0] < 1.0:
+                return
+            dt = _now - _last_prog_t[0] if _last_prog_t[0] else 0
+            if not _prog_start[0]:
+                _prog_start[0] = _now
+            with done_lock:
+                b = total_bytes[0]
+                w = wire_bytes[0]
+                d = total_done[0]
+            if _last_prog_t[0] and dt > 0:
+                inst = max(w - _last_prog_w[0], 0) / dt
+                _ema_speed[0] = _ema_speed[0] * 0.6 + inst * 0.4 if _ema_speed[0] else inst
+            _last_prog_w[0] = w
+            _last_prog_t[0] = _now
+            # First 10s: 32 connections all filling their TCP windows at once
+            # makes the instantaneous rate read ~3x the real line speed (the
+            # burst lasts ~200 MB). Report the honest average until it drains.
+            speed = _ema_speed[0]
+            if _now - _prog_start[0] < 10.0 and _now > _prog_start[0]:
+                speed = w / (_now - _prog_start[0])
+            # Byte-based, not chunk-count: chunks vary in size, so a
+            # chunk-count percent drifted from the "X / Y bytes" shown next
+            # to it (17% of chunks while 9.9% of bytes).
+            # Use overall depot size (including already-cached chunks) so the
+            # bar doesn't flicker between "341/503 MB" (pending) and
+            # "894/1100 MB" (overall) when native and DDMod report the same
+            # depot with different totals.
+            cached_bytes = total_size - pending_bytes if total_size and pending_bytes else 0
+            b_overall = b + max(0, cached_bytes)
+            total_overall = total_size if total_size else pending_bytes
+            pct = (b_overall / total_overall) * 100 if total_overall else 100.0
+            print_fn(
+                f"[PROG] {pct:.1f}% | {b_overall}/{total_overall} bytes | {speed:.0f} B/s"
+            )
+
+        _last_prog_w = [0]
+        _hb_stop = threading.Event()
+
+        def _heartbeat():
+            while not _hb_stop.wait(1.0):
+                _emit_prog()
+
+        _hb_t = threading.Thread(target=_heartbeat, daemon=True)
+        _hb_t.start()
+        try:
+            for fut in concurrent.futures.as_completed(futures):
+                if _cancelled():
+                    return False, total_bytes[0]
+                sha = futures[fut]
+                try:
+                    result = fut.result()
+                except Exception:
+                    result = -1
+
+                if result == -2:
+                    continue
+                if result < 0:
+                    # Retry once on a different server
+                    sha2, off2, cb2, fp2 = next(
+                        (s, o, c, p) for s, o, c, p in pending if s == sha
+                    )
+                    result = _download_one_chunk(sha2, off2, cb2, fp2)
+
+                if _cancelled():
+                    return False, total_bytes[0]
+                if result < 0:
+                    print_fn(f"[native] Failed chunk {sha[:16]}... ({total_done[0]}/{total} done)")
+                    return False, total_bytes[0]
+
+                if total_done[0] == total:
+                    _emit_prog(force=True)
+        finally:
+            _hb_stop.set()
+            # Unblock stalled workers so the executor's implicit
+            # shutdown(wait=True) returns and DDMod can take over now,
+            # not after every worker exhausts its retries.
+            _abort()
+            client.disconnect()
+            try:
+                from sff.game import download_queue as _dq
+                _dq.unregister_pause_gate(_cancel_app_id)
+            except Exception:
+                pass
+
+    print_fn(f"[native] Depot {depot_id} done: {total_bytes[0]:,} bytes ({skipped} cached, {total} downloaded)")
+    return True, total_bytes[0]

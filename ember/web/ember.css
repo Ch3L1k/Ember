@@ -1,0 +1,260 @@
+/* Ember — Copyright (C) 2026 Ember contributors.
+ * GNU GPL version 3 or later; distributed without any warranty.
+ * See LICENSE for the full license and warranty disclaimer.
+ */
+:root,html[data-theme]{
+ --bg:#171d25!important;--fg:#dcdedf!important;--accent:#1a9fff!important;--accent-hover:#66c0f4!important;--accent-rgb:26,159,255!important;
+ --card-bg:#23262e!important;--border:#3d4450!important;--btn-bg:#292e36!important;--btn-hover:#3d4450!important;
+ --input-bg:#10151c!important;--sidebar-bg:#2a2d34!important;--sidebar-active:#1a9fff!important;--custom-bg:none!important;--bg-image:none!important;
+}
+html,body{background:#171d25!important;color:#dcdedf;font-family:Arial,"Segoe UI",sans-serif;font-size:14px;font-weight:400}
+body::before,body::after{display:none!important}
+button,input,select,textarea,h1,h2,h3,h4{font-family:inherit!important;letter-spacing:normal}
+.sidebar{width:196px;min-width:196px;background:#2a2d34;border:0}
+.sidebar-logo{height:48px;min-height:48px;padding:0 24px;border:0}
+.sidebar-icon{display:none}
+.sidebar-title{font-size:16px;font-weight:700;color:#1a9fff;letter-spacing:0;transform:translateY(-6px)}
+.sidebar-nav{padding:0 14px 12px 0;overflow:auto}
+.nav-item{height:40px;padding:0 24px;gap:13px;font-size:14px;color:#c5c8cc;font-weight:400;white-space:nowrap;border-radius:0}
+.nav-item.active{background:#3d4450;color:white;font-weight:400}
+.nav-item.active::before{display:none}
+.nav-item:hover{background:#353b45;color:white}
+.nav-icon{width:18px;min-width:18px;height:18px;opacity:1;color:#b6babe;stroke:none;fill:currentColor}
+.nav-icon svg{display:block;width:18px;height:18px;fill:currentColor;stroke:none}
+.nav-item.active .nav-icon{color:white}
+.nav-separator{margin:0 12px 0 24px;background:#3d4450;height:1px}
+.content{margin-left:196px;height:100vh;padding:0 24px 24px;background:#171d25;overflow-y:auto;overflow-x:hidden}
+.page-header{border:0;padding:0;margin:0 0 28px}
+.page-header h1,.ember-about h1{font-size:23px;line-height:29px;color:white;font-weight:700;margin:0}
+.page-subtitle{font-size:13px;color:#9fa5ad;opacity:1;line-height:1.5;margin:8px 0 0}
+.btn{border:0;border-radius:1px;padding:9px 14px;min-height:34px;line-height:16px;background:#292e36;color:#dcdedf;box-shadow:none;font-size:12px;font-weight:400}
+.btn:hover{background:#3d4450;color:white}
+.btn-primary{background:#1a9fff;color:white}
+.btn-primary:hover{background:#39adff}
+.btn:focus-visible,.ember-feature-tile:focus-visible,.nav-item:focus-visible{outline:1px solid #66c0f4;outline-offset:-1px}
+input[type=text],input[type=password],input[type=number],input[type=search],textarea,select,.custom-select-display{border-radius:1px;border:1px solid #101318;background:#10151c;color:#dcdedf;padding:9px 11px;font-size:13px;box-shadow:inset 0 1px 2px #0003}
+input:focus,textarea:focus{outline:1px solid #3d566b}
+.ember-account-row{display:flex;gap:12px;align-items:center;margin:0 12px 21px 16px;min-height:64px}
+.ember-account-mark{width:64px;height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#3d4148;border:4px solid #595f66;color:#dcdedf}
+.ember-account-mark svg{width:33px;height:33px;fill:currentColor}
+.ember-account-text{flex:1;min-width:0}
+.ember-account-text strong{color:#66c0f4;font-weight:400;display:block;font-size:14px;margin-bottom:4px}
+.ember-status{font-size:12px;color:#4b94b2;line-height:16px}
+.ember-status[data-connected=false]{color:#c59a64}
+.ember-connection-indicator{padding:16px 24px;border-top:1px solid #3d4450;flex-shrink:0}
+.ember-feature-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 11px 9px}
+.ember-feature-tile{min-height:135px;border:0;border-radius:1px;background:#23262e;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;cursor:pointer;padding:13px 8px 7px;font-size:14px}
+.ember-feature-tile:hover{background:#2d333e}
+.ember-feature-tile>svg{width:38px;height:38px;fill:#f2f2f2;margin:0 0 12px}
+.ember-feature-tile strong{font-size:14px;font-weight:400;line-height:17px}
+.ember-feature-tile>span{font-size:12px;color:#b8b8b8;line-height:20px}
+.ember-information-row{min-height:62px;display:flex;align-items:center;gap:9px;margin:6px 0;padding:10px 12px;background:#23262e;border-radius:1px;font-size:14px}
+.ember-information-row>span:first-child{color:white;flex-shrink:0}
+.ember-information-row>span:nth-child(2){color:#9198a1;font-size:12px;min-width:0}
+.ember-information-row>.btn{margin-left:auto;flex-shrink:0}
+.ember-empty{color:#9198a1;font-size:13px;padding:20px 0}
+.store-controls{padding:10px;background:#23262e;border-radius:1px;border:0;gap:8px;align-items:center}
+.search-bar{min-width:180px;flex:1}.store-options{gap:6px;flex-wrap:wrap}
+.view-toggle{background:#171d25;border-radius:1px}
+.view-toggle .btn.active{background:#3d4450;color:white}
+.genre-chips{gap:5px;margin:16px 0}
+.genre-chip{border:0;border-radius:1px;padding:6px 9px;background:#23262e;color:#b8b8b8;font-size:12px}
+.genre-chip.active{background:#3d4450;color:white}
+.game-grid{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px}
+.game-card,.game-list-item{border-radius:1px;background:#23262e;border:0;box-shadow:none;transform:none!important}
+.game-card:hover,.game-list-item:hover{background:#2b303a;box-shadow:none}
+.game-card-img{height:120px}.game-card-body{padding:10px 11px}
+.game-card-name{font-size:14px;font-weight:400;color:white}
+.game-card-actions{padding:0 10px 10px;gap:5px}
+.game-card-appid,.game-card-buildid{display:none}
+.game-card-actions .btn{padding:8px 9px}
+.game-card-meta{color:#9098a1;font-size:11px}
+.page.active{animation:fadeIn .1s ease}.stagger-in{animation:fadeIn .1s ease both;animation-delay:0s!important}
+.modal-content{background:#171d25;border:1px solid #43505a;border-radius:8px;box-shadow:0 10px 35px #0008}
+.modal-header{border-bottom:0}.modal-header h2{font-size:23px;font-weight:700;color:white}
+.modal-overlay{background:#0009;backdrop-filter:none}
+.toast{border-radius:2px;background:#292e36}
+.ember-about{max-width:650px;color:#b8b8b8;line-height:1.6}
+.ember-about>p{margin:24px 0}
+.ember-about h2{font-size:14px;font-weight:400;color:white;margin:0 0 10px}
+.ember-about-card{background:#23262e;padding:14px;margin:8px 0}
+.ember-about small{font-size:12px;color:#9198a1}
+.ember-about-hero{display:flex;align-items:center;gap:20px;margin-top:32px}
+.ember-about-hero img{width:72px;height:72px;border-radius:15px}
+.ember-about-hero h2{font-size:30px;font-weight:600;margin:0;color:#fff}
+.ember-about-hero p{font-size:14px;margin:4px 0 0;color:#b8c2cc}
+.ember-about-description{margin:24px 0;color:#b8c2cc}
+.ember-about-facts{padding:0 16px}
+.ember-about-facts>div{display:flex;justify-content:space-between;gap:20px;padding:16px 0}
+.ember-about-facts>div+div{border-top:1px solid #ffffff0a}
+.ember-about-facts strong{font-weight:500;color:#66c0f4}
+.ember-about-facts a{font-weight:500;color:#66c0f4;text-decoration:none}
+.ember-about-facts a:hover,.ember-about-facts a:focus-visible{color:#fff;text-decoration:underline}
+.ember-about-independent{font-size:12px;color:#929aa3}
+.ember-about-upstream{border-top:1px solid #3d4450;padding-top:20px;margin-top:28px;font-size:12px;color:#929aa3}
+.ember-about-upstream h2{font-size:13px;color:#b8c2cc}
+.ember-about-upstream p{margin:10px 0}
+#ember-language{max-width:260px;width:100%;height:36px;color:#dcdedf;background:#292e36;border:0;border-radius:1px;padding:0 12px;font-size:13px}
+.ember-preference{padding:14px 12px;background:#23262e;border-radius:1px;margin:6px 0}
+.ember-tool-picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 28px}
+.ember-catalog-heading{position:relative;padding-right:145px;margin-bottom:24px}
+.ember-search-shortcut{position:absolute;right:0;top:0;color:#9fa5ad}
+.ember-catalog-tabs{display:flex;gap:24px;border-bottom:1px solid #3d4450;margin:0 0 20px;overflow-x:auto}
+.ember-catalog-tab{border:0;border-bottom:3px solid transparent;background:transparent;color:#aeb5bf;font:14px Arial;padding:12px 0;white-space:nowrap;cursor:pointer}
+.ember-catalog-tab[aria-pressed=true]{color:white;border-bottom-color:#1a9fff}
+.ember-catalog-tab:hover{color:white}
+#page-store .store-controls{flex-wrap:wrap;background:transparent;padding:0;margin-bottom:12px}
+#page-store .search-bar{flex-basis:100%}
+#page-store .search-bar input{min-height:44px;font-size:15px}
+#page-store .store-options{width:100%;justify-content:space-between}
+#ember-search-history{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 20px;min-height:0}
+#ember-search-history:empty{display:none}
+.ember-recent-label{font-size:12px;color:#8e98a4;margin-right:2px}
+.ember-search-chip{border:1px solid #3d4450;background:transparent;color:#b8c4ce;padding:5px 9px;border-radius:2px;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px Arial}
+.ember-search-chip:hover{background:#292e36;color:white}
+.ember-text-button{border:0;background:transparent;color:#66c0f4;font:12px Arial;cursor:pointer;padding:6px}
+#page-store[data-catalog-view=pins] #store-grid,#page-store[data-catalog-view=recent] #store-grid,#page-store[data-catalog-view=pins] #store-list,#page-store[data-catalog-view=recent] #store-list,#page-store:not([data-catalog-view=all]) #store-loading,#page-store:not([data-catalog-view=all]) #store-pagination,#page-store:not([data-catalog-view=all]) .genre-chips,#page-store:not([data-catalog-view=all]) #store-select-bar{display:none!important}
+.ember-pin{position:absolute;right:8px;top:8px;z-index:2;border:1px solid #ffffff24;border-radius:2px;background:#171d25e8;color:#aeb5bf;width:30px;height:30px;display:grid;place-items:center;cursor:pointer}
+.ember-pin svg{width:17px;height:17px;fill:transparent;stroke:currentColor;stroke-width:1.7}
+.ember-pin[aria-pressed=true]{color:#66c0f4}
+.ember-pin[aria-pressed=true] svg{fill:currentColor}
+.ember-pin:hover{background:#3d4450;color:white}
+.game-list-item .ember-pin{position:static;flex-shrink:0;margin-right:10px}
+.ember-pinned-grid{margin-top:18px}
+.ember-saved-empty{background:#23262e;padding:38px 24px;text-align:center;color:#9fa5ad}
+.ember-saved-empty h2{font-size:18px;font-weight:400;color:white;margin:0 0 12px}
+.ember-saved-empty p{font-size:13px;line-height:20px;margin:0}
+.ember-activity-toolbar{display:flex;align-items:center;justify-content:space-between;color:#8e98a4;font-size:12px;margin-bottom:12px}
+.ember-activity-row{display:grid;grid-template-columns:minmax(140px,1fr) minmax(160px,1fr) auto;gap:8px 20px;padding:16px 18px;background:#23262e;margin:6px 0;align-items:center}
+.ember-activity-row strong{color:white;font-weight:400;font-size:14px}
+.ember-activity-result{font-size:12px;color:#c59a64}
+.ember-activity-result[data-success=true]{color:#a4d18c}
+.ember-activity-row time{grid-column:1/3;grid-row:2;font-size:12px;color:#8e98a4}
+.ember-activity-row .btn{grid-column:3;grid-row:1/3}
+.ember-component-facts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.ember-component-facts span{padding:5px 8px;background:#171d25;color:#aeb5bf;font-size:12px}
+@media(max-width:780px){.ember-catalog-heading{padding-right:0}.ember-search-shortcut{position:static;margin-top:12px}.ember-catalog-tabs{gap:18px}.ember-activity-row{grid-template-columns:1fr}.ember-activity-row time,.ember-activity-row .btn{grid-column:auto;grid-row:auto}}
+.ember-tool-picker select{min-width:200px;max-width:600px;flex:1}
+.ember-tool-panel{background:#23262e;padding:20px;margin:6px 0 18px}
+.ember-tool-panel h2{font-size:16px;font-weight:400;color:white;margin:0 0 12px}
+.ember-tool-panel p{font-size:13px;color:#9fa5ad;line-height:20px;margin:0 0 18px}
+#ember-dlc-status{font-size:13px;line-height:20px;color:#66c0f4;margin-bottom:14px}
+.ember-tool-actions{display:flex;gap:8px;flex-wrap:wrap}
+#page-ember-tools[aria-busy=true] #ember-dlc-status::before{content:"";display:inline-block;vertical-align:-2px;width:10px;height:10px;margin-right:8px;border:2px solid #3d4450;border-top-color:#1a9fff;border-radius:50%;animation:emberSpin 1s linear infinite}
+.ember-preference label{display:block;color:white;font-size:14px;margin:0 0 10px}
+.ember-preference small{font-size:12px;line-height:1.6;color:#929aa3;display:block;margin-top:9px}
+.ember-preference input[readonly]{width:100%;color:#9fa9b3}
+.ember-provider{margin-top:22px;padding:14px 12px;background:#23262e;color:#9198a1;font-size:12px}
+.ember-provider summary{font-size:14px;color:#dcdedf;cursor:pointer}
+.ember-provider p{margin:14px 0;line-height:1.6}
+.connect-banner{border:0;border-radius:1px;background:#171d25}
+.pagination{margin-top:18px}
+#ember-legacy,.sidebar-bottom[hidden],#btn-logs[hidden],.discord-corner-link,#home-toggle-ui{display:none!important}
+.ember-library-controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.ember-library-controls input{flex:1;width:auto;min-width:180px}.ember-library-controls select{width:220px;min-width:190px}
+#ember-library-status{display:flex;gap:12px;align-items:center;color:#a7c9e7;font-size:13px;line-height:20px;margin:10px 0;min-height:24px}
+#ember-library-status:empty{display:none}#ember-library-summary{font-size:13px;color:#8f98a0;margin:14px 0}
+.ember-library-spinner{width:12px;height:12px;flex:none;border:2px solid #3d4450;border-top-color:#1a9fff;border-radius:50%;animation:emberSpin 1s linear infinite}
+.ember-library-game{padding:18px 16px;margin-bottom:6px;background:#23262e;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ember-library-game-info{flex:1;min-width:210px}.ember-library-game-info strong{display:block;color:#fff;font-size:15px;line-height:22px;overflow-wrap:anywhere}.ember-library-game-info>span{display:block;font-size:12px;color:#8f98a0;margin-top:5px}
+.ember-library-game-actions{display:flex;gap:6px;flex-wrap:wrap}.ember-library-game-actions .btn{font-size:12px;padding:8px 10px;min-height:30px}
+.ember-library-game-actions [data-action=remove]{color:#c6a5a5;background:#323238}
+.ember-library-empty{color:#8f98a0;padding:26px 16px;background:#23262e}
+.ember-library-pagination{display:flex;justify-content:flex-end;gap:12px;align-items:center;margin-top:18px;color:#8f98a0;font-size:13px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#414853;border-radius:3px}
+::-webkit-scrollbar-track{background:transparent}
+@media(max-width:670px){.sidebar{width:170px;min-width:170px}.content{margin-left:170px;padding-right:16px;padding-left:16px}.nav-item{padding-left:20px}.ember-account-row{margin-left:0;margin-right:0}.ember-information-row{flex-wrap:wrap}}
+#ember-add-status{position:fixed;right:20px;bottom:20px;width:min(392px,calc(100vw - 32px));max-height:65vh;overflow:auto;z-index:10010;display:flex;flex-direction:column;gap:10px}
+.ember-add-operation{position:relative;flex:none;background:#23262e;border:1px solid #3d4450;border-top:2px solid #1a9fff;box-shadow:0 8px 24px #0005;padding:20px;color:#dcdedf;font-size:14px;overflow-wrap:anywhere}
+.ember-add-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px}
+.ember-add-heading strong{min-width:0;color:#fff;font-size:14px;line-height:20px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ember-add-stage{color:#66c0f4;line-height:20px;font-size:13px}
+.ember-add-detail{font-size:12px;line-height:19px;color:#aeb5bf;margin:10px 0 0}
+.ember-add-detail[hidden],.ember-add-wait[hidden]{display:none}
+.ember-add-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
+.ember-add-footer .btn:first-child{margin-left:auto}
+.ember-add-operation[data-state=done]{border-top-color:#a4d18c}
+.ember-add-operation[data-state=error]{border-top-color:#c78175}
+.ember-add-operation[data-state=error] .ember-add-stage{color:#e9a29a}
+.ember-add-operation[data-state=done] .ember-add-stage{color:#a4d18c}
+.ember-add-spinner{display:block;flex:none;width:14px;height:14px;margin-top:2px;border:2px solid #ffffff20;border-top-color:#66c0f4;border-radius:50%;animation:emberSpin 1s linear infinite}
+.btn-download.ember-adding::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;border:2px solid #ffffff40;border-top-color:white;border-radius:50%;vertical-align:-2px;animation:emberSpin 1s linear infinite}
+.btn-download.ember-adding{opacity:.75;cursor:progress}
+@keyframes emberSpin{to{transform:rotate(360deg)}}
+.ember-searching::before,#ember-search-status[data-busy=true] [role=status]::before{content:"";display:inline-block;width:11px;height:11px;border:2px solid #ffffff35;border-top-color:currentColor;border-radius:50%;margin-right:8px;vertical-align:-2px;animation:emberSpin 1s linear infinite}
+#ember-search-status{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#23262e;color:#66c0f4;padding:13px 14px 16px;font-size:13px;margin:12px 0;overflow:hidden}
+#ember-search-status[hidden]{display:none}
+#ember-search-status[data-busy=true]::after{content:"";position:absolute;bottom:0;left:0;width:30%;height:2px;background:#1a9fff;animation:emberSearchSweep 1.5s ease-in-out infinite}
+#ember-search-status[data-error=true]{color:#e9a29a}
+.ember-search-elapsed{color:#929aa3;font-size:12px;white-space:nowrap}
+.ember-add-progress{position:relative;height:4px;background:#10151c;margin-top:18px;overflow:hidden;border-radius:1px}
+.ember-add-progress-fill{display:block;height:100%;width:var(--ember-progress);background:#1a9fff;transition:width .25s ease}
+.ember-add-progress-active{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.ember-add-progress-active::after{content:"";display:block;height:100%;width:28%;background:linear-gradient(90deg,transparent,#66c0f4,transparent);animation:emberProgressSweep 1.5s linear infinite}
+.ember-add-phase{font-size:11px;line-height:16px;color:#929aa3}
+.ember-add-elapsed{font-size:11px;line-height:16px;color:#929aa3;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ember-add-wait{font-size:12px;line-height:18px;color:#aeb5bf;margin:10px 0 0}
+.ember-add-operation[data-waiting=true] .ember-add-progress-active::after{animation:none;background:#8e98a4}
+.ember-add-operation[data-state=done] .ember-add-progress-fill{background:#a4d18c}
+.ember-add-operation[data-state=error] .ember-add-progress-fill{background:#c78175}
+@keyframes emberSearchSweep{from{transform:translateX(-105%)}to{transform:translateX(440%)}}
+@keyframes emberProgressSweep{from{transform:translateX(-110%)}to{transform:translateX(330%)}}
+.ember-add-modal{z-index:11000}
+.ember-add-modal .modal-content{width:calc(100% - 32px);max-width:492px;max-height:calc(100dvh - 40px);overflow:hidden;display:flex;flex-direction:column;border-radius:3px}
+.ember-add-modal .modal-header{padding:24px 24px 0;gap:20px;align-items:flex-start;flex-shrink:0}
+.ember-add-modal .modal-header h2{font-size:20px;line-height:27px;font-weight:600;overflow-wrap:anywhere;min-width:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ember-add-modal .modal-close{flex:none;line-height:24px}
+.ember-add-modal .modal-body{padding:24px;overflow-y:auto;min-height:0}
+.ember-add-intro{display:flex;gap:16px;align-items:center;margin-bottom:24px}
+.ember-add-intro-icon{display:grid;place-items:center;flex:none;width:48px;height:48px;background:#1a9fff16;color:#66c0f4}
+.ember-add-intro-icon svg{width:25px;height:25px;overflow:visible}
+.ember-add-intro strong{font-size:14px;line-height:20px;font-weight:400;color:#dcdedf}
+.ember-add-intro p{font-size:12px;line-height:19px;margin:4px 0 0;color:#8f98a0}
+.ember-add-settings{border-top:1px solid #323945}
+.ember-add-settings>summary,.ember-add-alternatives>summary{display:flex;align-items:center;gap:12px;min-height:46px;list-style:none;font-size:12px;color:#acb2ba;cursor:pointer;user-select:none}
+.ember-add-settings>summary::-webkit-details-marker,.ember-add-alternatives>summary::-webkit-details-marker{display:none}
+.ember-add-settings>summary::after,.ember-add-alternatives>summary::after{content:"";width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);margin:-3px 3px 0 0;flex:none}
+.ember-add-settings[open]>summary::after,.ember-add-alternatives[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+.ember-add-settings>summary:hover,.ember-add-alternatives>summary:hover{color:#fff}
+.ember-add-source-value{margin-left:auto;color:#66c0f4;font-size:11px;text-align:right}
+.ember-add-settings-body{padding:8px 0 0}
+.ember-add-source-field label{display:block;font-size:12px;color:#8f98a0;margin-bottom:8px}
+.ember-add-source-field select{width:100%;min-height:36px}
+.ember-add-modal .dl-source-picker[hidden]{display:none}
+.ember-add-local-warning{color:#e9a29a;font-size:12px;line-height:18px;margin:8px 0 0}
+.ember-add-local-warning[hidden]{display:none}
+.ember-add-alternatives{margin-top:18px;border-top:1px solid #323945}
+.ember-add-alternatives>summary::after{margin-left:auto}
+.ember-add-alternatives-body{padding:4px 0 0}
+.ember-add-alternatives-body>div{padding-left:0!important;margin-bottom:16px}
+.ember-add-modal input[type=text]{min-width:0;width:100%}
+.ember-add-modal .download-option{padding:12px;margin:8px 0 0;border:0;border-radius:1px;background:#23262e;gap:12px}
+.ember-add-modal .download-option:hover{background:#2e3540;transform:none}
+.ember-add-modal .download-option .dl-icon{width:20px;height:20px;margin-top:1px;color:#acb2ba}
+.ember-add-modal .download-option .dl-title{font-size:13px;font-weight:400;line-height:19px;color:#dcdedf}
+.ember-add-modal .download-option .dl-desc{font-size:11px;line-height:17px;color:#8f98a0}
+.ember-add-modal .modal-footer{padding:16px 24px;gap:8px;background:#1b212a;border-top:1px solid #323945;flex-shrink:0;flex-wrap:nowrap}
+.ember-add-modal .modal-footer .btn{font-size:13px;min-height:36px;padding:10px 18px}
+.ember-add-modal .modal-footer .modal-cancel{margin-right:auto}
+.ember-add-modal .ember-add-confirm .dl-title{font-size:13px;font-weight:400}
+.ember-add-modal .ember-add-confirm .dl-desc[hidden]{display:none}
+#ember-provider-key{width:calc(100% - 48px);max-width:420px;padding:24px;border:1px solid #434953;border-radius:3px;background:#171d25;color:#dcdedf;font:14px Arial,sans-serif;box-sizing:border-box}
+#ember-provider-key::backdrop{background:#0009}
+#ember-provider-key h2{margin:0 0 16px;font-size:20px}
+#ember-provider-key p{font-size:13px;line-height:20px;color:#acb2ba}
+#ember-provider-key label{display:block;margin:20px 0 8px;font-size:12px}
+#ember-provider-key input{width:100%;box-sizing:border-box;min-height:38px}
+#ember-provider-key .ember-key-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+#ember-provider-key .ember-key-error{color:#e9a29a}
+.ember-add-modal summary:focus-visible,.ember-add-modal select:focus-visible{outline:1px solid #66c0f4;outline-offset:2px}
+@media(max-width:420px){.ember-add-modal .modal-header{padding:20px 16px 0}.ember-add-modal .modal-body{padding:20px 16px}.ember-add-modal .modal-footer{padding:14px 16px}.ember-add-modal .modal-footer .btn{padding:10px 12px}#ember-add-status{right:16px;bottom:16px}.ember-add-intro{align-items:flex-start}}
+html[data-surface=steam] .sidebar{width:220px;min-width:220px}
+html[data-surface=steam] .sidebar-logo{height:80px;min-height:80px;padding:0 24px}
+html[data-surface=steam] .sidebar-title{transform:none}
+html[data-surface=steam] .sidebar-nav{padding-right:0}
+html[data-surface=steam] .content{margin-left:220px;padding:32px 26px 32px 24px}
+html[data-surface=steam] .page-header{margin-bottom:28px}
+html[data-surface=steam] .ember-account-row{margin-left:0;margin-right:0}
+html[data-surface=steam] .ember-feature-tiles{margin-left:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

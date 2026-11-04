@@ -1,0 +1,2 @@
+<!-- Ember — Copyright (C) 2026 Ember contributors. GNU GPL v3 or later. See LICENSE. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="ember-blue" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="#171d25"/><stop offset=".48" stop-color="#16476a"/><stop offset="1" stop-color="#139ed5"/></linearGradient></defs><circle cx="32" cy="32" r="32" fill="url(#ember-blue)"/><path d="M22 16h25l-4 8H29l-3 6h15l-4 8H23l-3 6h22l-4 8H8zM47 10l-1 9 8-4z" fill="#fff"/></svg>

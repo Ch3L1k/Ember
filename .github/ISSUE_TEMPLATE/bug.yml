@@ -1,0 +1,29 @@
+name: Bug report
+description: Report a reproducible Ember problem.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Ember version
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and Steam installation
+      placeholder: Windows 11 / CachyOS, native Steam, Millennium version if used
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include the exact error and App ID for game-specific problems. Remove tokens and personal data from logs.
+    validations:
+      required: true

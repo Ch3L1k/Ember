@@ -1,0 +1,60 @@
+# Ember — Copyright (C) 2026 Ember contributors.
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Ember Windows
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['ember/**', 'sff/**', 'lab/**', 'packaging/**', 'EmberRuntime.py', 'build_ember.spec', 'requirements.txt', '.github/workflows/ember-windows.yml']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Install Python dependencies
+        shell: pwsh
+        run: |
+          python -m venv .venv
+          .venv/Scripts/python.exe -m pip install -r requirements.txt
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe -m pip install steam==1.4.4 --no-deps
+      - name: Unit tests
+        run: .venv/Scripts/python.exe -m lab.run_tests
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          .venv/Scripts/python.exe packaging/fetch_nsis.py "$env:RUNNER_TEMP/nsis"
+      - name: Build installer and corresponding source
+        shell: pwsh
+        run: ./packaging/build.ps1 -Output "$env:RUNNER_TEMP/ember-release" -MakeNSIS "$env:RUNNER_TEMP/nsis/nsis-3.13/makensis.exe"
+      - name: Check bundled Qt runtime in isolation
+        shell: pwsh
+        run: |
+          $app = Start-Process -FilePath "$env:RUNNER_TEMP/ember-release/payload/Ember/Ember.exe" -ArgumentList @('--check-window', '--root', "$env:RUNNER_TEMP/ember-fixture", '--report', "$env:RUNNER_TEMP/ember-report") -WindowStyle Hidden -Wait -PassThru
+          if ($app.ExitCode) { throw "Bundled window test failed: $($app.ExitCode)" }
+      - name: Silent install and uninstall
+        shell: pwsh
+        run: |
+          $target = "$env:RUNNER_TEMP/ember-installed"
+          $setup = Start-Process -FilePath "$env:RUNNER_TEMP/ember-release/Ember-Setup.exe" -ArgumentList @("/S", "/D=$target") -Wait -PassThru
+          if ($setup.ExitCode -or !(Test-Path "$target/Ember.exe")) { throw "Installer failed" }
+          $app = Start-Process -FilePath "$target/Ember.exe" -ArgumentList @('--check-window', '--root', "$env:RUNNER_TEMP/installed-fixture", '--report', "$env:RUNNER_TEMP/installed-report") -Wait -PassThru
+          if ($app.ExitCode) { throw "Installed runtime failed" }
+          $remove = Start-Process -FilePath "$target/Uninstall.exe" -ArgumentList @("/S", "_?=$target") -Wait -PassThru
+          if ($remove.ExitCode -or (Test-Path "$target/Ember.exe")) { throw "Uninstaller failed" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ember-Windows-preview
+          path: |
+            ${{ runner.temp }}/ember-release/Ember-Setup.exe
+            ${{ runner.temp }}/ember-release/Ember-Source.zip
+            ${{ runner.temp }}/ember-release/SHA256SUMS.txt
+            ${{ runner.temp }}/ember-report/*.json

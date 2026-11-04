@@ -1,0 +1,24 @@
+Ember
+Copyright (C) 2026 Ember contributors.
+Ember developer: Ch3L1k.
+
+Based on SteaMidra 6.9.1 (drappula/SFF), commit
+2b89004f505e87b333dcb1086f13c216d7218778.
+SteaMidra Copyright (C) 2025-2026 Midrag and contributors.
+Upstream: https://github.com/drappula/SFF/tree/v6.9.1
+
+This modified distribution is licensed under GNU GPL version 3 or later.
+See LICENSE. The application is provided without warranty.
+The complete corresponding application source and Ember changes are supplied
+in Ember-Source.zip beside the installed executable, including build scripts.
+
+Ember changes, 2026-10-18:
+- Independent Steam CEF integration and Steam menu entry.
+- Authenticated loopback transport for the existing application backend.
+- Ember branding, navigation and attribution screen.
+
+Third-party components retain their own licenses and authorship.
+Native Linux installation additionally uses lumalinux by jayool, GPL-3.0:
+https://github.com/jayool/lumalinux . It is installed separately from Ember.
+See third_party_licenses/ and notices within third_party/.
+Ember is not affiliated with or endorsed by Valve.
