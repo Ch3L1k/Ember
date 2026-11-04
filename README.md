@@ -64,6 +64,12 @@ The installers set up Ember. Game registration needs compatible external compone
 
 Steam updates can change its UI and break integration. Diagnostics do not repair every possible launch failure. Driver problems, missing runtimes, incomplete downloads and game-specific crashes still need separate investigation.
 
+## Disclaimer
+
+Ember is provided **“as is”, without warranty**, to the extent permitted by applicable law. **Use it at your own risk.** Compatibility, uninterrupted operation and the absence of account restrictions are not guaranteed. Back up your Steam configuration and game saves before making changes.
+
+You are responsible for how you use Ember and for complying with applicable laws and service terms. The warranty disclaimer and limitation of liability in sections 15–16 of [LICENSE](LICENSE) apply; this notice does not exclude liability that cannot legally be excluded.
+
 ## Development
 
 The application is Python with a web UI. Windows packaging uses PyInstaller and NSIS; Linux uses a per-user virtual environment.
