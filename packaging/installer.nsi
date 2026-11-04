@@ -8,7 +8,7 @@ Unicode True
 !error "Pass /DPAYLOAD=absolute-path-to-dist/Ember"
 !endif
 !ifndef OUTPUT
-!define OUTPUT "Ember-Setup.exe"
+!define OUTPUT "Ember-Setup-windows.exe"
 !endif
 Name "Ember"
 OutFile "${OUTPUT}"

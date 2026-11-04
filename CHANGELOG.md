@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Installer filenames now identify the platform: `Ember-Setup-windows.exe` and `Ember-Install-linux.sh`.
+
 - Linux additions check the platform of the supplied game depots before registration. Windows-only sources select Steam’s stable Proton without replacing an existing Proton choice; missing content or unconfirmed compatibility settings stop the operation. New Proton prefixes are prepared across all Steam libraries before registration, including shared NTFS libraries, instead of only the folder selected in Ember.
 
 - Keep Linux installer scripts in Unix format when packaging source on Windows.

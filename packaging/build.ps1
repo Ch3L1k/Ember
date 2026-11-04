@@ -26,9 +26,9 @@ try {
     Copy-Item -LiteralPath "$destination\Ember-Source.zip" -Destination "$payload\Ember-Source.zip"
     Copy-Item -LiteralPath "$project\README-EMBER.txt" -Destination "$payload\README.txt"
     Copy-Item -LiteralPath "$project\LICENSE" -Destination "$payload\LICENSE"
-    & $MakeNSIS "/DEMBER_VERSION=$version" "/DEMBER_VERSION_QUAD=$versionQuad" "/DPAYLOAD=$payload" "/DOUTPUT=$destination\Ember-Setup.exe" "$project\packaging\installer.nsi"
+    & $MakeNSIS "/DEMBER_VERSION=$version" "/DEMBER_VERSION_QUAD=$versionQuad" "/DPAYLOAD=$payload" "/DOUTPUT=$destination\Ember-Setup-windows.exe" "$project\packaging\installer.nsi"
     if ($LASTEXITCODE) { throw 'NSIS failed.' }
-    Get-FileHash -LiteralPath "$destination\Ember-Setup.exe", "$destination\Ember-Source.zip" -Algorithm SHA256 |
+    Get-FileHash -LiteralPath "$destination\Ember-Setup-windows.exe", "$destination\Ember-Source.zip" -Algorithm SHA256 |
         ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } |
         Set-Content "$destination\SHA256SUMS.txt" -Encoding ascii
 } finally { Pop-Location }

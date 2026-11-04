@@ -44,7 +44,7 @@ jobs:
         shell: pwsh
         run: |
           $target = Join-Path $env:RUNNER_TEMP 'ember-installed'
-          $setup = Start-Process -FilePath "$env:RUNNER_TEMP/ember-release/Ember-Setup.exe" -ArgumentList @("/S", "/D=$target") -Wait -PassThru
+          $setup = Start-Process -FilePath "$env:RUNNER_TEMP/ember-release/Ember-Setup-windows.exe" -ArgumentList @("/S", "/D=$target") -Wait -PassThru
           if ($setup.ExitCode -or !(Test-Path "$target/Ember.exe")) { Write-Host "Exit: $($setup.ExitCode); expected: $target"; Get-ItemProperty HKCU:\Software\Ember -ErrorAction SilentlyContinue; Get-ChildItem $env:RUNNER_TEMP -Directory; throw "Installer failed" }
           $app = Start-Process -FilePath "$target/Ember.exe" -ArgumentList @('--check-window', '--root', "$env:RUNNER_TEMP/installed-fixture", '--report', "$env:RUNNER_TEMP/installed-report") -Wait -PassThru
           if ($app.ExitCode) { throw "Installed runtime failed" }
@@ -54,7 +54,7 @@ jobs:
         with:
           name: Ember-Windows-preview
           path: |
-            ${{ runner.temp }}/ember-release/Ember-Setup.exe
+            ${{ runner.temp }}/ember-release/Ember-Setup-windows.exe
             ${{ runner.temp }}/ember-release/Ember-Source.zip
             ${{ runner.temp }}/ember-release/SHA256SUMS.txt
             ${{ runner.temp }}/ember-report/*.json

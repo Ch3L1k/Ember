@@ -32,7 +32,7 @@ Registration does not add a license to your Steam account. Games with additional
 
 | Platform | Package | Start here |
 | --- | --- | --- |
-| Windows 10/11, x64 | `Ember-Setup.exe` | Run the installer as your normal user. |
+| Windows 10/11, x64 | `Ember-Setup-windows.exe` | Run the installer as your normal user. |
 | Linux, x86_64 | `Ember-Source.zip` | Extract it and run `bash install.sh`. |
 
 Get the files from [Releases](https://github.com/Ch3L1k/Ember/releases). The Linux installer runs entirely in the terminal: install/update, dependency check and uninstall. Python 3.11+ and internet access are required. Do not run it with `sudo`.

@@ -26,7 +26,7 @@ Ember добавляет в Steam каталог игр, инструменты 
 
 В [релизах](https://github.com/Ch3L1k/Ember/releases):
 
-- **Windows 10/11 x64:** `Ember-Setup.exe`. Запустите от обычного пользователя.
+- **Windows 10/11 x64:** `Ember-Setup-windows.exe`. Запустите от обычного пользователя.
 - **Linux x86_64:** распакуйте `Ember-Source.zip` и запустите `bash install.sh` из папки `Ember`. Нужны Python 3.11+ и интернет. `sudo` не требуется.
 
 Запуск установщика одной командой:

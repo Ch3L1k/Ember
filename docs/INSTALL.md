@@ -2,7 +2,7 @@
 
 ## Windows
 
-Download `Ember-Setup.exe` from Releases. It installs for the current user into `%LOCALAPPDATA%\Programs\Ember`, with Start menu shortcuts and an uninstaller. The Python/Qt runtime is included. Close Ember before updating; close Steam if removing a Millennium adapter.
+Download `Ember-Setup-windows.exe` from Releases. It installs for the current user into `%LOCALAPPDATA%\Programs\Ember`, with Start menu shortcuts and an uninstaller. The Python/Qt runtime is included. Close Ember before updating; close Steam if removing a Millennium adapter.
 
 The installer is unsigned. Verify its SHA-256 against `SHA256SUMS.txt` from the same release. Do not disable antivirus protection to run a file you cannot verify.
 
@@ -97,4 +97,4 @@ Build the Windows installer on Windows with NSIS:
 ./packaging/build.ps1 -Output C:\Builds\Ember
 ```
 
-Use a fresh output folder. This produces `Ember-Setup.exe`, `Ember-Source.zip` and `SHA256SUMS.txt`. The installer includes corresponding source and license notices.
+Use a fresh output folder. This produces `Ember-Setup-windows.exe`, `Ember-Source.zip` and `SHA256SUMS.txt`. The installer includes corresponding source and license notices.

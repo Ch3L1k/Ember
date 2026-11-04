@@ -260,7 +260,7 @@ def main():
     args = parser.parse_args()
     print('\n  EMBER\n  Windows & Linux · Linux installer\n')
     if sys.platform != 'linux' or platform.machine().lower() not in ('x86_64', 'amd64'):
-        raise RuntimeError('This installer requires Linux x86_64. On Windows use Ember-Setup.exe.')
+        raise RuntimeError('This installer requires Linux x86_64. On Windows use Ember-Setup-windows.exe.')
     if sys.version_info < (3, 11):
         raise RuntimeError('Python 3.11 or newer is required.')
     if os.geteuid() == 0:

@@ -68,7 +68,7 @@ def download(url, target, limit):
 
 def main():
     if sys.platform != 'linux' or platform.machine().lower() not in ('x86_64', 'amd64'):
-        raise RuntimeError('Use Ember-Setup.exe on Windows. This command is for Linux x86_64.')
+        raise RuntimeError('Use Ember-Setup-windows.exe on Windows. This command is for Linux x86_64.')
     if sys.version_info < (3, 11):
         raise RuntimeError('Python 3.11 or newer is required.')
     if os.geteuid() == 0:
