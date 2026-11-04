@@ -1,6 +1,6 @@
-<p align="center"><img src="assets/banner.ru.svg" alt="Ember — инструменты Steam для Windows и Linux" width="100%"></p>
+<p align="center"><img src="assets/banner.svg" alt="Ember — инструменты Steam для Windows и Linux" width="100%"></p>
 
-<p align="center"><a href="https://github.com/Ch3L1k/Ember/releases">Скачать</a> · <a href="INSTALL.md">Установка</a> · <a href="https://github.com/Ch3L1k/Ember/issues">Сообщить об ошибке</a> · <a href="README.en.md">English</a></p>
+<p align="center"><a href="https://github.com/Ch3L1k/Ember/releases">Скачать</a> · <a href="INSTALL.md">Установка</a> · <a href="https://github.com/Ch3L1k/Ember/issues">Сообщить об ошибке</a> · <a href="../README.md">English</a></p>
 
 Ember добавляет в Steam каталог игр, инструменты библиотеки и диагностику запуска. Открывается из меню Steam или со страницы игры в магазине. Millennium необязателен.
 
