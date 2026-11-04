@@ -1,49 +1,41 @@
-<p align="center"><img src="docs/assets/banner.svg" alt="Ember — Steam library and game tools for Windows and Linux" width="100%"></p>
+<p align="center"><img src="docs/assets/banner.ru.svg" alt="Ember — инструменты Steam для Windows и Linux" width="100%"></p>
 
-<p align="center">
-  <a href="https://github.com/Ch3L1k/Ember/releases">Downloads</a> ·
-  <a href="docs/INSTALL.md">Installation</a> ·
-  <a href="https://github.com/Ch3L1k/Ember/issues">Report a bug</a> ·
-  <a href="docs/README.ru.md">Русский</a>
-</p>
+<p align="center"><a href="https://github.com/Ch3L1k/Ember/releases">Скачать</a> · <a href="docs/INSTALL.md">Установка</a> · <a href="https://github.com/Ch3L1k/Ember/issues">Сообщить об ошибке</a> · <a href="docs/README.en.md">English</a></p>
 
-Ember puts a game catalog, library tools and launch diagnostics inside Steam. Open it from the Steam menu or from a game's store page. Millennium is optional.
+Ember добавляет в Steam каталог игр, инструменты библиотеки и диагностику запуска. Открывается из меню Steam или со страницы игры в магазине. Millennium необязателен.
 
-**Preview software.** Windows and Linux use the same interface, with different platform components. Compatibility depends on the game, Steam version and configured data source.
+**Предварительная версия.** Интерфейс общий для Windows и Linux, системные компоненты отличаются. Совместимость зависит от игры, версии Steam и источника данных.
 
-## What it does
+## Возможности
 
-- **Catalog:** search by title or App ID, save games for later and revisit recent additions. Text search uses a local index; remote metadata loads separately.
-- **Library:** register games in the local Steam client, then install and launch them from Steam. Removing an Ember registration keeps game files and saves, with an option to restore it.
-- **DLC tools:** manage supported unlocker configurations for individual games.
-- **Launch diagnostics on Linux:** inspect installation paths, mount restrictions and Proton prefixes. Supported repairs move a prefix to a Linux filesystem and retain the original as a backup.
-- **Steam integration:** an embedded page, a store-page button, progress feedback and Russian/English UI.
+- Поиск по названию и App ID, отложенные игры и история добавлений. Поиск сначала использует локальный индекс, затем получает дополнительные данные из сети.
+- Регистрация игр в библиотеке клиента Steam. Скачивание и запуск — через Steam. Удаление регистрации Ember сохраняет файлы игры и сохранения; регистрацию можно восстановить.
+- Настройка поддерживаемых инструментов разблокировки DLC для отдельных игр.
+- Диагностика запуска на Linux: папки, ограничения файловой системы и окружение Proton. Поддерживаемое исправление переносит префикс на Linux-раздел, сохраняя исходную копию.
+- Страница внутри Steam, кнопка в магазине, индикаторы операций и русский/английский интерфейс.
 
-Registration does not add a license to your Steam account. Games with additional DRM, server-side ownership checks or unsupported anti-cheat may not work. DLC may require separate content files.
+Регистрация не добавляет лицензию на Steam-аккаунт. Дополнительная DRM, серверная проверка владения и несовместимый античит могут препятствовать запуску. Для DLC иногда нужны отдельные файлы.
 
-<details>
-<summary><b>Screenshot — Linux launch diagnostics</b></summary>
+<details><summary><b>Скриншот — диагностика запуска на Linux</b></summary>
 
-<img src="docs/assets/diagnostics.png" alt="Ember tools showing a game installation and Proton prefix diagnostic" width="100%">
+<img src="docs/assets/diagnostics.png" alt="Диагностика игры и окружения Proton в Ember" width="100%">
 
 </details>
 
-## Install
+## Установка
 
-| Platform | Package | Start here |
-| --- | --- | --- |
-| Windows 10/11, x64 | `Ember-Setup.exe` | Run the installer as your normal user. |
-| Linux, x86_64 | `Ember-Source.zip` | Extract it and run `bash install.sh`. |
+В [релизах](https://github.com/Ch3L1k/Ember/releases):
 
-Get the files from [Releases](https://github.com/Ch3L1k/Ember/releases). The Linux installer runs entirely in the terminal: install/update, dependency check and uninstall. Python 3.11+ and internet access are required. Do not run it with `sudo`.
+- **Windows 10/11 x64:** `Ember-Setup.exe`. Запустите от обычного пользователя.
+- **Linux x86_64:** распакуйте `Ember-Source.zip` и запустите `bash install.sh` из папки `Ember`. Нужны Python 3.11+ и интернет. `sudo` не требуется.
 
-Start the terminal installer with one command:
+Запуск установщика одной командой:
 
 ```sh
 bash -c 'bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)'
 ```
 
-Or download the archive and install locally:
+Или скачайте архив из релизов и выполните:
 
 ```sh
 unzip Ember-Source.zip
@@ -51,31 +43,26 @@ cd Ember
 bash install.sh
 ```
 
-The installers set up Ember. Game registration needs compatible external components: LumaCore on Windows; SLSsteam and lumalinux on Linux. Some data sources require an API key. See [installation and removal](docs/INSTALL.md) for details.
+Онлайн-установщик проверяет SHA-256 архива до запуска.
 
-## Compatibility
+В терминальном установщике Linux есть установка/обновление, проверка зависимостей и удаление. Настройки, игры и сохранения при удалении остаются.
 
-| Environment | Status |
-| --- | --- |
-| Windows 10/11 x64 | Installer built on Windows; game compatibility varies. |
-| Arch-based Linux, native Steam | Primary Linux development environment; tested with Hyprland. |
-| Other Linux distributions | Not yet covered by the same desktop testing. |
-| Flatpak Steam / Steam Deck | Not verified for this release. |
+Установщики устанавливают Ember. Для регистрации игр отдельно нужны совместимые компоненты: LumaCore на Windows, SLSsteam и lumalinux на Linux. Некоторые источники требуют API-ключ. [Подробности](docs/INSTALL.md).
 
-Steam updates can change its UI and break integration. Diagnostics do not repair every possible launch failure. Driver problems, missing runtimes, incomplete downloads and game-specific crashes still need separate investigation.
+## Совместимость
 
-## Development
+Linux-интеграция проверялась на Arch-based Linux с Hyprland и обычным Steam. Flatpak, Steam Deck и другие окружения пока не прошли такую же проверку. Windows-установщик собирается на Windows; совместимость конкретных игр различается.
 
-The application is Python with a web UI. Windows packaging uses PyInstaller and NSIS; Linux uses a per-user virtual environment.
+Обновление Steam может потребовать исправления интеграции. Диагностика не решает все причины сбоя: драйверы, недостающие библиотеки, неполная загрузка файлов и ошибки самой игры проверяются отдельно.
 
-[Build and setup instructions](docs/INSTALL.md#development) · [Changelog](CHANGELOG.md)
+## Ошибки и разработка
 
-For a bug report, include your OS, Ember version, Steam installation type and the steps to reproduce it. For launch problems, include the game's App ID and the exact error. Remove tokens and personal information from logs before attaching them.
+В отчёте укажите ОС, версию Ember, способ установки Steam и шаги воспроизведения. Для проблем запуска добавьте App ID игры и точный текст ошибки. Перед отправкой журнала удалите токены и личные данные.
 
-## Credits
+[Настройка среды и сборка](docs/INSTALL.md#development) · [История изменений](CHANGELOG.md)
 
-Maintained by [Ch3L1k](https://github.com/Ch3L1k). Based on [SteaMidra / SFF](https://github.com/drappula/SFF/tree/v6.9.1) by Midrag and contributors.
+## Авторы
 
-GPL-3.0-or-later. See [LICENSE](LICENSE), [third-party notices](THIRD-PARTY.txt) and [upstream attribution](EMBER-NOTICES.txt). Third-party components keep their own licenses.
+Проект [Ch3L1k](https://github.com/Ch3L1k), основан на [SteaMidra / SFF](https://github.com/drappula/SFF/tree/v6.9.1) от Midrag и участников проекта.
 
-Ember is a community project and is not affiliated with Valve.
+GPL-3.0-or-later: [лицензия](LICENSE), [сторонние компоненты](THIRD-PARTY.txt), [происхождение](EMBER-NOTICES.txt). Ember не связан с Valve.
