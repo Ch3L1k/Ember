@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EXTENSIONS = {'.py', '.lua', '.js', '.cjs', '.css', '.html', '.svg', '.png', '.ico', '.jpg', '.qrc', '.yaml', '.json', '.txt', '.md', '.nsi', '.ps1', '.spec', '.yml', '.toml', '.sh'}
 TREES = ('ember', 'lab', 'sff', 'packaging', 'third_party_licenses', '.github', 'docs/assets')
 FILES = ('Ember.py', 'EmberRuntime.py', 'Main.py', 'Main_gui.py', 'LICENSE', 'EMBER-NOTICES.txt',
-         'install.sh', 'README.md', 'README-linux.md', 'README-EMBER.txt', 'CHANGELOG.md', 'requirements.txt', 'requirements-linux.txt', 'requirements-build.txt',
+         'install.sh', 'install-online.sh', 'README.md', 'README-linux.md', 'README-EMBER.txt', 'CHANGELOG.md', 'requirements.txt', 'requirements-linux.txt', 'requirements-build.txt',
          'THIRD-PARTY.txt', 'build_ember.spec', '.gitignore', '.gitattributes', 'docs/UPSTREAM-README.md', 'docs/README.ru.md', 'docs/INSTALL.md')
 DENY = {'__pycache__', 'fallback_depotkeys.json', 'fallback_tokens.json', 'trionine_depotkeys.json', 'contributor_state.json', '.DS_Store'}
 

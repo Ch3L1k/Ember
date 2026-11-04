@@ -37,6 +37,14 @@ Registration does not add a license to your Steam account. Games with additional
 
 Get the files from [Releases](https://github.com/Ch3L1k/Ember/releases). The Linux installer runs entirely in the terminal: install/update, dependency check and uninstall. Python 3.11+ and internet access are required. Do not run it with `sudo`.
 
+Start the terminal installer with one command:
+
+```sh
+bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)
+```
+
+Or download the archive and install locally:
+
 ```sh
 unzip Ember-Source.zip
 cd Ember
@@ -50,7 +58,7 @@ The installers set up Ember. Game registration needs compatible external compone
 | Environment | Status |
 | --- | --- |
 | Windows 10/11 x64 | Installer built on Windows; game compatibility varies. |
-| CachyOS / Hyprland, native Steam | Used for Linux development and manual integration checks. |
+| Arch-based Linux, native Steam | Primary Linux development environment; tested with Hyprland. |
 | Other Linux distributions | Not yet covered by the same desktop testing. |
 | Flatpak Steam / Steam Deck | Not verified for this release. |
 

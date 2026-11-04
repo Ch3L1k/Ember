@@ -14,7 +14,13 @@ Uninstall through Windows Settings. User settings, games and saves remain on dis
 
 Requirements: Linux x86_64, native Steam, Python 3.11+ with `venv` and `ensurepip`, Git for a Python dependency, and internet access. On distributions which split Python into packages, install the `venv` package too. Qt system libraries must be available; the installer checks that the Python/Qt modules can load before activating the new version.
 
-Extract `Ember-Source.zip`, enter `Ember`, then run:
+Start online:
+
+```sh
+bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)
+```
+
+This downloads a versioned source package and verifies its SHA-256 before opening the installer. Alternatively, download `Ember-Source.zip`, extract it, enter `Ember`, then run:
 
 ```sh
 bash install.sh

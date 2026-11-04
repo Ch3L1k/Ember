@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 MARKER = '.ember-install.json'
 TREES = ('ember', 'sff', 'packaging', 'third_party_licenses', 'docs')
 FILES = ('EmberRuntime.py', 'Ember.py', 'LICENSE', 'EMBER-NOTICES.txt', 'THIRD-PARTY.txt',
-         'requirements-linux.txt', 'README.md', 'README-linux.md', 'install.sh')
+         'requirements-linux.txt', 'README.md', 'README-linux.md', 'install.sh', 'install-online.sh')
 DENY = {'__pycache__', 'fallback_depotkeys.json', 'fallback_tokens.json', 'trionine_depotkeys.json',
         'contributor_state.json', 'settings.bin', 'api_cache.json', '.git'}
 
