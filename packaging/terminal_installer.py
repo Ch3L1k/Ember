@@ -96,6 +96,39 @@ def copy_source(source, target):
             raise RuntimeError('Incomplete source archive: ' + name)
 
 
+def run_logged(command, cwd, log, label):
+    import signal
+    log.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with log.open('a', encoding='utf-8') as output:
+        log.chmod(0o600)
+        output.write('\n' + label + '\n'); output.flush()
+        process = subprocess.Popen(command, cwd=cwd, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+        started = time.monotonic()
+        frames = '|/-\\'
+        try:
+            while process.poll() is None:
+                elapsed = int(time.monotonic() - started)
+                if sys.stdout.isatty():
+                    print(f'\r  {frames[elapsed % len(frames)]} {label} · {elapsed}s   ', end='', flush=True)
+                time.sleep(0.2)
+            if process.returncode:
+                tail = '\n'.join(log.read_text(encoding='utf-8', errors='replace').splitlines()[-8:])
+                raise RuntimeError(f'{label} failed (exit {process.returncode}).\n{tail}\nLog: {log}')
+        except BaseException:
+            if process.poll() is None:
+                if os.name == 'posix': os.killpg(process.pid, signal.SIGTERM)
+                else: process.terminate()
+                try: process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    if os.name == 'posix': os.killpg(process.pid, signal.SIGKILL)
+                    else: process.kill()
+                    process.wait()
+            raise
+        finally:
+            if sys.stdout.isatty(): print('\r' + ' ' * 90 + '\r', end='', flush=True)
+    print('  ✓ ' + label, flush=True)
+
+
 def prepare_environment(release):
     commands = [
         [sys.executable, '-m', 'venv', str(release / '.venv')],
@@ -103,9 +136,13 @@ def prepare_environment(release):
         [str(release / '.venv/bin/python'), '-m', 'pip', 'install', 'steam==1.4.4', '--no-deps'],
         [str(release / '.venv/bin/python'), '-c', 'import ssl, psutil, yaml, steam; from PyQt6 import QtWidgets, QtWebEngineWidgets; import ember.entry'],
     ]
+    state = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'ember-installer'
+    log = state / ('install-' + time.strftime('%Y%m%d-%H%M%S') + '.log')
+    print('  Log: ' + str(log), flush=True)
     for index, command in enumerate(commands, 1):
-        print(f'  [{index}/4] ' + ('Create Python environment', 'Install dependencies', 'Install Steam library', 'Check runtime')[index - 1], flush=True)
-        subprocess.run(command, cwd=release, check=True)
+        label = f'[{index}/4] ' + ('Create Python environment', 'Install dependencies', 'Install Steam library', 'Check runtime')[index - 1]
+        if not sys.stdout.isatty(): print('  ' + label, flush=True)
+        run_logged(command, release, log, label)
 
 
 def atomic_write(path, content, mode=0o644):
@@ -120,7 +157,7 @@ def atomic_write(path, content, mode=0o644):
 
 
 def integration_files(home, prefix):
-    data = Path(os.environ.get('EMBER_DATA_DIR') or (Path(os.environ.get('XDG_DATA_HOME', home / '.local/share')) / 'ember/Desktop'))
+    data = Path(os.environ.get('EMBER_DATA_DIR') or (Path(os.environ.get('XDG_DATA_HOME', home / '.local/share')) / 'ember/Desktop')).expanduser().resolve()
     metadata = data / 'autostart.json'
     if not metadata.exists():
         return None

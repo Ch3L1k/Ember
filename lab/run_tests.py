@@ -17,7 +17,7 @@ if __name__ == '__main__':
         from PyQt6 import QtWebEngineWidgets
         tests = []
         linux_only = {'test_linux', 'test_linux_registration', 'test_diagnostics', 'test_metadata_transactions',
-                      'test_terminal_installer', 'test_terminal_integration'}
+                      'test_terminal_installer', 'test_terminal_integration', 'test_installer_progress'}
         for path in sorted(Path(__file__).parent.glob('test_*.py')):
             if os.name == 'nt' and path.stem in linux_only:
                 continue
