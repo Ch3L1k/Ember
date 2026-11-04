@@ -190,6 +190,9 @@ def add_to_library(bridge, app_id, source="", request_update=False, lua_path="",
     from sff.game.download_queue import is_cancelled
     if is_cancelled(app_id):
         return False
+    from ember.platform_selection import ensure_registration_platform, prepare_registration_prefixes
+    ensure_registration_platform(parsed)
+    prepare_registration_prefixes(bridge._steam_path, app_id)
     progress("Writing decryption keys")
     ConfigVDFWriter(bridge._steam_path).add_decryption_keys_to_config(parsed)
     progress("Installing Lua to Steam")

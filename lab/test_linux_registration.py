@@ -44,6 +44,12 @@ class LinuxRegistrationTests(unittest.TestCase):
         self.native.start()
         self.keys = patch("ember.linux_registration.write_native_keys")
         self.keys.start()
+        self.platform = patch("ember.platform_selection.ensure_registration_platform")
+        self.platform.start()
+        self.addCleanup(self.platform.stop)
+        self.prefixes = patch("ember.platform_selection.prepare_registration_prefixes")
+        self.prefixes.start()
+        self.addCleanup(self.prefixes.stop)
 
     def tearDown(self):
         self.data_patch.stop()
@@ -63,6 +69,15 @@ class LinuxRegistrationTests(unittest.TestCase):
         self.assertFalse((self.steam / "steamapps").exists())
         self.assertEqual(self.events[-1]["status"], "Complete")
         self.assertFalse(any("Downloading depot" in event["status"] for event in self.events))
+
+    def test_platform_failure_stops_before_registration_writes(self):
+        before = self.config.read_bytes()
+        with patch("ember.platform_selection.ensure_registration_platform", side_effect=ValueError("platform mismatch")):
+            with self.assertRaisesRegex(ValueError, "platform mismatch"):
+                add_to_library(self.bridge, "480", "local", lua_path=self.lua)
+        self.assertEqual(self.config.read_bytes(), before)
+        self.assertFalse((self.steam / "config/stplug-in").exists())
+        self.assertFalse(any(event["status"] == "Complete" for event in self.events))
 
     def test_provider_add_only_fetches_registration_metadata(self):
         with patch("sff.lua.choices.download_lua_direct", return_value=self.lua) as fetch, contextlib.redirect_stdout(io.StringIO()):

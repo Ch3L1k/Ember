@@ -99,12 +99,6 @@ def main():
                 if app_id.isascii() and app_id.isdigit():
                     if not hasattr(self, "_ember_additions_active"):
                         self._ember_additions_active = set()
-                    if not isolated and os.name != "nt" and app_id not in self._ember_additions_active:
-                        from ember.host import prepare_compatdata
-                        try:
-                            prepare_compatdata(path, self._active_library or path, app_id)
-                        except (OSError, ValueError) as error:
-                            logger.warning("Could not prepare the Linux Proton prefix for %s: %s", app_id, error)
                     self._ember_additions_active.add(app_id)
             except (ValueError, TypeError):
                 logger.debug("Ignored invalid addition progress", exc_info=True)
