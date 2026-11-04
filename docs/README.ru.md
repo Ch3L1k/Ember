@@ -32,7 +32,7 @@ Ember добавляет в Steam каталог игр, инструменты 
 Запуск установщика одной командой:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)
+bash -c 'bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)'
 ```
 
 Или скачайте архив из релизов, распакуйте и выполните `bash install.sh`. Онлайн-установщик проверяет SHA-256 архива до запуска.

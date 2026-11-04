@@ -40,7 +40,7 @@ Get the files from [Releases](https://github.com/Ch3L1k/Ember/releases). The Lin
 Start the terminal installer with one command:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)
+bash -c 'bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)'
 ```
 
 Or download the archive and install locally:

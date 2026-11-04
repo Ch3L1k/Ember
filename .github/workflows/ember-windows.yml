@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['ember/**', 'sff/**', 'lab/**', 'packaging/**', 'EmberRuntime.py', 'build_ember.spec', 'requirements.txt', '.github/workflows/ember-windows.yml']
+    paths: ['ember/**', 'sff/**', 'lab/**', 'packaging/**', 'EmberRuntime.py', 'build_ember.spec', 'requirements.txt', 'install*.sh', 'README.md', 'docs/INSTALL.md', 'docs/README.ru.md', '.github/workflows/ember-windows.yml']
   pull_request:
 permissions:
   contents: read

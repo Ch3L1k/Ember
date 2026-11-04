@@ -17,7 +17,7 @@ Requirements: Linux x86_64, native Steam, Python 3.11+ with `venv` and `ensurepi
 Start online:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)
+bash -c 'bash <(curl -fsSL https://raw.githubusercontent.com/Ch3L1k/Ember/main/install-online.sh)'
 ```
 
 This downloads a versioned source package and verifies its SHA-256 before opening the installer. Alternatively, download `Ember-Source.zip`, extract it, enter `Ember`, then run:
