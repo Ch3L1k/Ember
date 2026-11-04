@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import threading
+import tempfile
 import time
 from pathlib import Path
 
@@ -126,8 +127,8 @@ class Library:
             files = self.registrations().get(app_id, [])
             if not files:
                 raise ValueError("У игры нет регистрации Ember для удаления")
-            folder = self.backups / (str(time.time_ns()) + "-" + app_id)
-            folder.mkdir(parents=True)
+            self.backups.mkdir(parents=True, exist_ok=True)
+            folder = Path(tempfile.mkdtemp(prefix=f"{time.time_ns()}-{app_id}-", dir=self.backups))
             entries = []
             for source in files:
                 relative = source.relative_to(self.plugins)

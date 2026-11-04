@@ -84,6 +84,19 @@ class LibraryTests(unittest.TestCase):
         self.library.restore('900000001')
         self.assertEqual((child/'00_LetUpdate_override.lua').read_bytes(),b'addappid(900000001)')
 
+    def test_repeated_removal_with_identical_clock_keeps_separate_backups(self):
+        original = self.lua.read_bytes()
+        with patch('ember.library.time.time_ns', return_value=123456):
+            self.library.remove('900000001', 'Fixture')
+            first, _ = self.library.removed()['900000001']
+            self.library.restore('900000001')
+            self.library.remove('900000001', 'Fixture')
+            second, _ = self.library.removed()['900000001']
+        self.assertNotEqual(first.parent, second.parent)
+        self.assertEqual((first.parent / self.lua.name).read_bytes(), original)
+        self.library.restore('900000001')
+        self.assertEqual(self.lua.read_bytes(), original)
+
     def test_invalid_app_ids_are_rejected(self):
         for value in ('../900000001','0','01','９','4294967296',''):
             with self.assertRaises(ValueError): self.library.remove(value,'Invalid')
