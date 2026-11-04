@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep Linux installer scripts in Unix format when packaging source on Windows.
+
 - Linux has an interactive terminal installer with staged updates, per-user launchers and uninstall that preserves application data. Install from a downloaded archive or use the online launcher, which verifies the versioned archive before extraction.
 - Windows catalog search reads UTF-8 caches correctly on systems using a legacy code page. Installer and application versions now share the same source.
 - Updated project documentation for Windows and Linux.

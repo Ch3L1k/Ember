@@ -1,1 +1,2 @@
-# Add paths to exclude from release zips (path export-ignore)
+# Linux launchers must also work in source archives built on Windows.
+*.sh text eol=lf

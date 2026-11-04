@@ -72,6 +72,8 @@ def export(target):
     for source in selected():
         relative = source.relative_to(ROOT)
         content = source.read_bytes()
+        if source.suffix.lower() == ".sh":
+            content = content.replace(b"\r\n", b"\n")
         if secrets.search(content):
             raise ValueError('Potential credential in ' + str(relative))
         destination = target / relative
