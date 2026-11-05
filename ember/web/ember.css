@@ -258,3 +258,17 @@ html[data-surface=steam] .page-header{margin-bottom:28px}
 html[data-surface=steam] .ember-account-row{margin-left:0;margin-right:0}
 html[data-surface=steam] .ember-feature-tiles{margin-left:0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+#ember-api-keys{margin-top:24px}
+#ember-api-keys h2{font-size:18px;margin:0 0 8px}
+.ember-api-description,.ember-api-load-status{color:#929aa3;font-size:13px;line-height:1.5}
+.ember-api-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,2fr);gap:20px;align-items:center}
+.ember-api-row label{margin-bottom:4px}
+.ember-api-row small{margin:0;max-width:420px}
+.ember-api-entry{display:flex;gap:8px}
+.ember-api-entry input{width:100%;min-width:0;box-sizing:border-box}
+.ember-api-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+.ember-api-controls [role="status"]{flex:1;color:#929aa3;font-size:12px}
+.ember-api-controls .ember-api-error{color:#efaaaa}
+.ember-api-entry .btn{min-width:92px}
+@media(max-width:760px){.ember-api-row{grid-template-columns:1fr;gap:12px}.ember-api-controls{flex-wrap:wrap}}

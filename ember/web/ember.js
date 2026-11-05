@@ -68,7 +68,7 @@
  const sortingLabels={popular:"Популярные",updated:"Недавно обновлённые",newest:"Сначала новые",oldest:"Сначала старые",name_asc:"Название: А–Я",name_desc:"Название: Я–А"};
  for(const option of document.getElementById("store-sort").options)option.textContent=sortingLabels[option.value]||option.textContent;
  const preferences=document.createElement("section");preferences.id="page-ember-settings";preferences.className="page";
- preferences.innerHTML='<div class="page-header"><h1>Настройки</h1><p class="page-subtitle">Язык и подключение к каталогу</p></div><div class="ember-preference"><label for="ember-language">Язык интерфейса</label><select id="ember-language"><option value="ru">Русский</option><option value="en">English</option></select><small>Применяется сразу и сохраняется между запусками Ember.</small></div><div class="ember-preference"><label for="ember-steam-path">Папка Steam</label><input id="ember-steam-path" type="text" readonly><small>Используется Steam, установленный на этом компьютере.</small></div><details class="ember-provider"><summary>Источник каталога</summary><p>Дополнительное подключение для доступности манифестов. Просмотр каталога доступен без ключа.</p></details>';
+ preferences.innerHTML='<div class="page-header"><h1>Настройки</h1><p class="page-subtitle">Язык и подключение к каталогу</p></div><div class="ember-preference"><label for="ember-language">Язык интерфейса</label><select id="ember-language"><option value="ru">Русский</option><option value="en">English</option></select><small>Применяется сразу и сохраняется между запусками Ember.</small></div><div class="ember-preference"><label for="ember-steam-path">Папка Steam</label><input id="ember-steam-path" type="text" readonly><small>Используется Steam, установленный на этом компьютере.</small></div><section id="ember-api-keys" aria-labelledby="ember-api-keys-title"></section>';
  content.append(preferences);
  const language=document.getElementById("ember-language");
  let targetLanguage=null;
@@ -88,7 +88,7 @@
  window.addEventListener("ember:rpc-error",event=>{
   if(event.detail.method==="ember_set_language"){language.disabled=false;language.value=document.documentElement.lang;}
  });
- preferences.querySelector("details").append(document.getElementById("store-connect-banner"));
+ legacy.append(document.getElementById("store-connect-banner"));
  for(const id of ["store-update-list-btn","store-provider-refresh-btn","store-provider-status"])legacy.append(document.getElementById(id));
  Bridge.onReady(py=>{py.get_setting("steam_path",value=>{document.getElementById("ember-steam-path").value=value;});});
  const about=document.createElement("section");
@@ -130,6 +130,7 @@
  }
  updateIntegration();
  setInterval(()=>{if(!document.hidden)updateIntegration();},5000);
+ const keysScript=document.createElement("script");keysScript.src="/ember/api-keys.js";document.body.append(keysScript);
  const toolsScript=document.createElement("script");toolsScript.src="/ember/tools.js";document.body.append(toolsScript);
  const additions=document.createElement("script");additions.src="/ember/add-game.js";document.body.append(additions);
  const catalog=document.createElement("script");catalog.src="/ember/catalog.js";document.body.append(catalog);

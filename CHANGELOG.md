@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Settings replaces the catalog-provider banner with API key management for Hubcap, Ryuu, DepotBox, Steam Web API and ManifestHub. Keys can be replaced or removed without restarting Ember; secret values are omitted from settings logs.
+
 - Linux library pages retain the last launch and display “Less than a minute” for locally recorded short sessions. Once Steam records a full minute, its standard statistics take over. Playtime and save data are not modified. The short-session block uses Steam’s standard clock icon.
 - Tools can now check a game’s library statistics, refresh achievement data, and restore a disabled Linux achievement integration setting with a launcher backup. Required Steam restarts are reported without closing running games.
 

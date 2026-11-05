@@ -203,9 +203,8 @@
   if(!request||!value||keySave.disabled)return;
   keySave.disabled=true;keyError.hidden=true;
   try{
-   await EmberTransport.request("/api/call",{method:"set_setting",args:[providers[request.source][0],value]});
-   const saved=await EmberTransport.request("/api/call",{method:"get_setting",args:[providers[request.source][0]]});
-   if(saved.result!==value)throw new Error("key-save-failed");
+   const saved=await EmberTransport.request("/api/call",{method:"ember_set_api_key",args:[providers[request.source][0],value]});
+   if(!JSON.parse(saved.result).configured)throw new Error("key-save-failed");
    if(!keyDialog.open||keyRequest!==request)return;
    keyDialog.close();
    window._updateDownloadSourceHint?.();
@@ -239,9 +238,10 @@
   if(checkingKey)return;
   checkingKey=true;primary.setAttribute("aria-busy","true");
   try{
-   const results=await Promise.all(providers[request.source].map(key=>EmberTransport.request("/api/call",{method:"get_setting",args:[key]})));
+   const reply=await EmberTransport.request("/api/call",{method:"ember_get_api_keys",args:[]});
+   const results=JSON.parse(reply.result).filter(key=>providers[request.source].includes(key.id));
    if(!sameAddition(request))return;
-   if(results.some(value=>typeof value.result==="string"&&value.result.trim())){continueAddition(request);return;}
+   if(results.some(value=>value.configured)){continueAddition(request);return;}
    keyRequest=request;keyInput.value="";keyError.hidden=true;
    keyDialog.querySelector("h2").textContent=t("API-ключ {provider}",{provider:sourceNames[request.source]});
    keyDialog.querySelector(".ember-key-description").textContent=t("Для этого источника нужен API-ключ. Введите его, чтобы продолжить добавление.");

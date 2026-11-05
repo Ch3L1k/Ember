@@ -11,6 +11,28 @@ import json
 from pathlib import Path
 
 STRINGS = {
+    'API-ключи': 'API keys',
+    'Укажите ключи используемых сервисов. Сохранение не проверяет их действительность у провайдера.': 'Enter keys for the services you use. Saving a key does not validate it with the provider.',
+    'Источник данных для добавления игр.': 'A data source for adding games.',
+    'Ключ реселлера Ryuu. Используется отдельно от обычного API-ключа.': 'Ryuu reseller key. Separate from the regular API key.',
+    'Обычный API-ключ Ryuu.': 'Regular Ryuu API key.',
+    'Запросы каталога Steam. Не нужен для входа в аккаунт.': 'Steam catalog requests. Not required to sign in.',
+    'Загрузка манифестов. Временный ключ действует до 24 часов.': 'Manifest downloads. Temporary keys last up to 24 hours.',
+    'Введите новый ключ для замены': 'Enter a replacement key',
+    'Введите API-ключ': 'Enter an API key',
+    'Показать или скрыть введённый ключ {provider}': 'Show or hide the entered {provider} key',
+    'Ключ сохранён': 'Key saved',
+    'Ключ не указан': 'No key set',
+    'Ключ удалён': 'Key removed',
+    'Неизвестный API-ключ.': 'Unknown API key setting.',
+    'Ключ не должен содержать пробелы или переносы строк.': 'Keys must not contain spaces or line breaks.',
+    'Загружаем настройки…': 'Loading settings…',
+    'Не удалось загрузить настройки ключей.': 'Could not load API key settings.',
+    'Сохраняем…': 'Saving…',
+    'Удаляем…': 'Removing…',
+    'Показать': 'Show',
+    'Скрыть': 'Hide',
+
     'Карточка игры в Steam': 'Steam library details',
     'Проверка времени в игре, последнего запуска и списка достижений. Обновление данных из Steam и восстановление известных настроек интеграции.': 'Check playtime, the last launch and achievements. Refresh data from Steam and repair known integration settings.',
     'Проверить библиотеку': 'Check library',

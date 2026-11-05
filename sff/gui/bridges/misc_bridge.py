@@ -1588,7 +1588,7 @@ def _bridge_set_setting(bridge, key, value):
             try:
                 _set(s, value)
             except Exception as e:
-                logger.warning("Failed to save setting %s=%s: %s", key, value, e)
+                logger.warning("Failed to save setting %s (%s)", key, type(e).__name__)
             # A17: flipping store_show_software invalidates the Steam
             # applist cache so the next Store browse rebuilds the
             # list with the new filter. Drop the in-memory cache and

@@ -71,6 +71,20 @@ def main():
             return language
 
         @pyqtSlot(result=str)
+        def ember_get_api_keys(self):
+            from ember.api_keys import snapshot
+            return json.dumps(snapshot())
+
+        @pyqtSlot(str, str, result=str)
+        def ember_set_api_key(self, key, value):
+            if isolated:
+                raise PermissionError("Изменения ключей отключены в лаборатории")
+            from ember.api_keys import save
+            result = save(self, key, value)
+            self.task_finished.emit(json.dumps({'task': 'ember_api_key', **result}))
+            return json.dumps(result)
+
+        @pyqtSlot(result=str)
         def ember_get_workspace(self):
             return json.dumps(workspace.snapshot())
 

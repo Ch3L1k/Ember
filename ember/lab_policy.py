@@ -24,7 +24,7 @@ READ_ONLY = frozenset({
     "get_launch_options", "let_updates_list_games", "get_provider_cache_status",
     "list_profiles", "search_games", "search_games_file", "get_game_branches", "check_lua_folder_migration",
     "ember_lab_state", "ember_lab_backup", "ember_lab_restore", "ember_lab_add_game", "ember_refresh_games", "ember_get_workspace", "ember_update_workspace", "ember_set_language",
-    "ember_library_refresh", "ember_library_action",
+    "ember_library_refresh", "ember_library_action", "ember_get_api_keys",
 })
 
 

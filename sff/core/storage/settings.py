@@ -100,7 +100,7 @@ def set_setting(key, value):
     if not isinstance(value, (str, bool, dict)):
         raise ValueError("Invalid type used for set_setting")
 
-    logger.debug(f"set_setting: {key.clean_name} -> {str(value)}")
+    logger.debug("set_setting: %s -> %s", key.clean_name, "[redacted]" if key.hidden else value)
     with _settings_lock:
         settings = load_all_settings()
         settings[key.key_name] = (
