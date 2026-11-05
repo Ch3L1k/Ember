@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Document the distinction between local library statistics, public Steam activity and Discord game recognition. Public activity under the real Steam App ID remains unverified for Linux registrations.
+- Document the distinction between local library statistics, public Steam activity and Discord game recognition, with Linux test results and upstream references. Public activity under the real Steam App ID remains unresolved for tested Linux registrations.
 
 - Settings uses compact, expandable service rows for API key management for Hubcap, Ryuu, DepotBox, Steam Web API and ManifestHub. Keys can be replaced or removed without restarting Ember; secret values are omitted from settings logs.
 

@@ -68,6 +68,8 @@ Steam updates can change its UI and break integration. Diagnostics do not repair
 
 Local library statistics and public game activity are separate. A game can launch and show playtime in the library while friends still see only “Online”. Public activity under the game's real Steam App ID is not verified for Ember registrations on Linux. A non-Steam shortcut status is not equivalent, and changing the library page does not fix it.
 
+The current Linux check reproduced missing public activity for a registered game while a control game reported correctly. See [test results and limitations](docs/GAME-ACTIVITY.md).
+
 Discord detects games separately. A Linux executable may appear by its filename instead of the game's recognized title and icon. Check **User Settings > Games & Apps > Registered Games**. Ember currently does not repair Discord's game recognition or guarantee that activity is grouped with an existing game history. See [Discord's activity sharing documentation](https://support.discord.com/hc/en-us/articles/7931156448919-Activity-Sharing-on-Discord-FAQ).
 
 ## Disclaimer
