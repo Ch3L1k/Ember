@@ -64,6 +64,12 @@ The installers set up Ember. Game registration needs compatible external compone
 
 Steam updates can change its UI and break integration. Diagnostics do not repair every possible launch failure. Driver problems, missing runtimes, incomplete downloads and game-specific crashes still need separate investigation.
 
+## Game activity
+
+Local library statistics and public game activity are separate. A game can launch and show playtime in the library while friends still see only “Online”. Public activity under the game's real Steam App ID is not verified for Ember registrations on Linux. A non-Steam shortcut status is not equivalent, and changing the library page does not fix it.
+
+Discord detects games separately. A Linux executable may appear by its filename instead of the game's recognized title and icon. Check **User Settings > Games & Apps > Registered Games**. Ember currently does not repair Discord's game recognition or guarantee that activity is grouped with an existing game history. See [Discord's activity sharing documentation](https://support.discord.com/hc/en-us/articles/7931156448919-Activity-Sharing-on-Discord-FAQ).
+
 ## Disclaimer
 
 Ember is provided **“as is”, without warranty**, to the extent permitted by applicable law. **Use it at your own risk.** Compatibility, uninterrupted operation and the absence of account restrictions are not guaranteed. Back up your Steam configuration and game saves before making changes.
