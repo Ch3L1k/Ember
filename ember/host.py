@@ -25,6 +25,14 @@ def steam_ui_classes(steam):
             match = re.search(r'\b' + key + r':"([A-Za-z0-9_-]+)"', source)
             if match:
                 classes[key] = match[1]
+        playbar_index = source.find('GameStatsSection:"')
+        if playbar_index >= 0:
+            playbar = source[source.rfind("{", 0, playbar_index):source.find("}", playbar_index)]
+            for key in ("GameStatsSection", "GameStat", "GameStatRight", "PlayBarLabel",
+                        "PlayBarDetailLabel", "Playtime", "LastPlayed", "MiniAchievements", "PlaytimeIcon", "GameStatIcon"):
+                match = re.search(r'\b' + key + r':"([A-Za-z0-9_-]+)"', playbar)
+                if match:
+                    classes[key] = match[1]
         navigation = re.search(r'SuperNav:"[A-Za-z0-9_-]+"[^{}]{0,1500}', source)
         if navigation:
             match = re.search(r'MenuButton:"([A-Za-z0-9_-]+)"', navigation[0])

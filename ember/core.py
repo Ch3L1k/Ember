@@ -179,7 +179,7 @@ def main():
         def ember_tool_action(self, app_id, action):
             if isolated:
                 raise PermissionError("Изменения игр отключены в лаборатории")
-            if action not in ("inspect", "dlc_install", "dlc_remove", "diagnose", "repair_launch") or not app_id.isdigit():
+            if action not in ("inspect", "dlc_install", "dlc_remove", "diagnose", "repair_launch", "inspect_library", "repair_library") or not app_id.isdigit():
                 raise ValueError("Некорректное действие инструмента")
             active = getattr(self, "_ember_tools_active", set())
             self._ember_tools_active = active

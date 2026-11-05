@@ -67,12 +67,12 @@
  window.addEventListener("ember:navigate",event=>{if(event.detail==="ember-tools")enter();});
  window.addEventListener("ember:games",event=>{games=event.detail;populate();display(cache.get(select.value));});
  Bridge.on("task_finished",raw=>{
-  const result=JSON.parse(raw);if(result.task!=="ember_tool" || ["diagnose","repair_launch"].includes(result.action))return;
+  const result=JSON.parse(raw);if(result.task!=="ember_tool" || ["diagnose","repair_launch","inspect_library","repair_library"].includes(result.action))return;
   const id=String(result.app_id);busy.delete(id);cache.set(id,result);
   if(select.value===id)display(result);
  });
  window.addEventListener("ember:rpc-error",event=>{
-  if(event.detail.method!=="ember_tool_action" || ["diagnose","repair_launch"].includes(event.detail.args[1]))return;
+  if(event.detail.method!=="ember_tool_action" || ["diagnose","repair_launch","inspect_library","repair_library"].includes(event.detail.args[1]))return;
   const id=String(event.detail.args[0]);busy.delete(id);
   cache.set(id,{success:false,message:event.detail.message});
   if(select.value===id)display(cache.get(id));
@@ -82,3 +82,5 @@
 })();
 
 const diagnosticScript=document.createElement("script");diagnosticScript.src="/ember/diagnostics.js";document.body.append(diagnosticScript);
+
+const libraryHealthScript=document.createElement("script");libraryHealthScript.src="/ember/library_health.js";document.body.append(libraryHealthScript);

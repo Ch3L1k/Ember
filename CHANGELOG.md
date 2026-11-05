@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Linux library pages retain the last launch and display “Less than a minute” for locally recorded short sessions. Once Steam records a full minute, its standard statistics take over. Playtime and save data are not modified. The short-session block uses Steam’s standard clock icon.
+- Tools can now check a game’s library statistics, refresh achievement data, and restore a disabled Linux achievement integration setting with a launcher backup. Required Steam restarts are reported without closing running games.
+
 - Repeated library removals create separate backup folders even when the system clock returns the same timestamp.
 
 - Installer filenames now identify the platform: `Ember-Setup-windows.exe` and `Ember-Install-linux.sh`.

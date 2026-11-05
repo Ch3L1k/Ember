@@ -104,7 +104,9 @@ class SteamIntegration:
         self.commands = queue.Queue()
         self.running = True
         self.store_states = {}
-        self.script = (ROOT / "ember/web/steam.js").read_text(encoding="utf-8")
+        self.script = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in
+                                ("ember/web/library_stats.js", "ember/web/steam.js"))
+        self._library_cache = (0, [])
         self.store_script = (ROOT / "ember/millennium/webkit.js").read_text(encoding="utf-8")
 
     def open_panel(self):
@@ -116,12 +118,24 @@ class SteamIntegration:
     def start(self):
         threading.Thread(target=self._run, daemon=True, name="ember-steam").start()
 
+    def _library_apps(self):
+        if os.name == "nt" or self.allowed_origin is not None:
+            return []
+        checked, apps = self._library_cache
+        if time.monotonic() - checked >= 15:
+            from ember.config import steam_path, DATA
+            from ember.library import Library
+            apps = sorted(Library(steam_path(), DATA).registrations())
+            self._library_cache = (time.monotonic(), apps)
+        return apps
+
     def _inject(self, client):
         config = {"origin": self.server.origin, "token": self.server.token, "mode": "lab" if self.allowed_origin else "standalone", "nativeWindow": bool(self.on_open_panel)}
         if os.name != "nt" and self.allowed_origin is None:
             from ember.host import steam_ui_classes
             from ember.config import steam_path
-            config.update(embedded=True, classes=steam_ui_classes(str(steam_path())))
+            config.update(embedded=True, classes=steam_ui_classes(str(steam_path())),
+                          libraryApps=self._library_apps())
         client.evaluate("window.__EMBER_CONFIG__=" + json.dumps(config) + ";\n" + self.script)
 
     @staticmethod
@@ -205,7 +219,7 @@ class SteamIntegration:
                                 client.call("Runtime.addBinding", {"name": "__emberStoreBinding"})
                                 client.evaluate(self.store_script)
                         elif client.evaluate("!!window.__emberSteam"):
-                            client.evaluate("window.__emberSteam.refresh()")
+                            client.evaluate("window.__EMBER_CONFIG__.libraryApps=" + json.dumps(self._library_apps()) + ";window.__emberSteam.refresh()")
                         else:
                             self._inject(client)
                             logger.info("Ember restored after Steam interface reload")

@@ -6,6 +6,7 @@
     "use strict";
     if (window.__emberSteam) return window.__emberSteam.refresh();
     const config = window.__EMBER_CONFIG__;
+    const libraryStats = config.embedded ? window.__emberLibraryStatsCreate?.(config) : null;
     const state = { observer: null, panel: null, disposed: false };
     const navigationStyle = document.createElement("style");
     navigationStyle.id = "ember-steam-navigation-style";
@@ -84,8 +85,10 @@
     }
 
     function refresh() {
+        if (state.disposed) return;
         geometry();
-        if (state.disposed || document.title !== "Steam Root Menu") return;
+        if (document.title === "Steam") libraryStats?.refresh();
+        if (document.title !== "Steam Root Menu") return;
         if (document.getElementById("ember-steam-menuitem")) return;
         const items = [...document.querySelectorAll('[role="menuitem"]')];
         if (items.length < 3) return;
@@ -120,6 +123,7 @@
         dispose() {
             state.disposed = true;
             state.observer.disconnect();
+            libraryStats?.dispose();
             window.removeEventListener("resize", geometry);
             document.removeEventListener("click", navigate, true);
             document.getElementById("ember-steam-menuitem")?.remove();

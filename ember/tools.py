@@ -41,6 +41,9 @@ def inspect_game(folder):
 def run_tool(bridge, app_id, action):
     if not str(app_id).isdigit():
         raise ValueError("Выберите установленную игру")
+    if action in ("inspect_library", "repair_library"):
+        from ember.library_health import run
+        return run(bridge, app_id, repair=action == "repair_library")
     if action in ("diagnose", "repair_launch"):
         from ember.diagnostics import run
         return run(bridge, app_id, repair=action == "repair_launch")
