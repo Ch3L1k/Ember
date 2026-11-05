@@ -259,16 +259,36 @@ html[data-surface=steam] .ember-account-row{margin-left:0;margin-right:0}
 html[data-surface=steam] .ember-feature-tiles{margin-left:0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
-#ember-api-keys{margin-top:24px}
+#ember-api-keys{margin-top:26px;max-width:1100px}
 #ember-api-keys h2{font-size:18px;margin:0 0 8px}
 .ember-api-description,.ember-api-load-status{color:#929aa3;font-size:13px;line-height:1.5}
-.ember-api-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,2fr);gap:20px;align-items:center}
-.ember-api-row label{margin-bottom:4px}
-.ember-api-row small{margin:0;max-width:420px}
-.ember-api-entry{display:flex;gap:8px}
-.ember-api-entry input{width:100%;min-width:0;box-sizing:border-box}
-.ember-api-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
-.ember-api-controls [role="status"]{flex:1;color:#929aa3;font-size:12px}
-.ember-api-controls .ember-api-error{color:#efaaaa}
-.ember-api-entry .btn{min-width:92px}
-@media(max-width:760px){.ember-api-row{grid-template-columns:1fr;gap:12px}.ember-api-controls{flex-wrap:wrap}}
+.ember-api-description{margin:0 0 16px}
+.ember-api-list{display:flex;flex-direction:column;gap:6px}
+.ember-api-row{background:#23262e;border:1px solid transparent;border-radius:3px;margin:0;transition:border-color .15s}
+.ember-api-row.is-open{border-color:#46505c}
+.ember-api-summary{display:flex;align-items:center;gap:16px;min-height:82px;padding:14px 18px;box-sizing:border-box}
+.ember-api-symbol{width:34px;height:34px;display:grid;place-items:center;color:#8b9aa9;flex-shrink:0}
+.ember-api-symbol svg{width:25px;height:25px}
+.ember-api-info{flex:1;min-width:0}
+.ember-api-info strong{display:block;font-size:14px;font-weight:500;color:#e6e8eb;margin-bottom:5px}
+.ember-api-info small{display:block;color:#929aa3;font-size:12px;line-height:1.45;max-width:440px}
+.ember-api-badge{display:flex;align-items:center;gap:7px;font-size:12px;color:#929aa3;white-space:nowrap;min-width:90px}
+.ember-api-badge::before{content:"";width:5px;height:5px;background:#697380;border-radius:50%}
+.ember-api-badge.is-saved{color:#b0c991}
+.ember-api-badge.is-saved::before{background:#a4c577}
+.ember-api-edit{min-width:118px}
+.ember-api-editor{margin:0 18px 16px 68px;padding-top:14px;border-top:1px solid #ffffff12;max-width:740px}
+.ember-api-label{display:block;color:#acb2ba;font-size:12px;margin-bottom:8px}
+.ember-api-entry{display:flex;background:#10151b;border:1px solid #39434e;border-radius:2px;overflow:hidden}
+.ember-api-entry:focus-within{border-color:#1a9fff}
+.ember-api-entry input{flex:1;width:100%;min-width:0;box-sizing:border-box;border:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;padding:11px 12px}
+.ember-api-entry .ember-api-show{background:transparent;padding:8px 12px;display:grid;place-items:center;min-width:42px;color:#9da8b5;box-shadow:none}
+.ember-api-show svg{width:20px;height:20px}
+.ember-api-controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+.ember-api-controls-spacer{flex:1}
+.ember-api-controls .ember-api-remove{background:transparent;color:#aab1b9;padding-left:0}
+.ember-api-controls .ember-api-remove:hover{color:#efaaaa}
+.ember-api-feedback{font-size:12px;color:#b0c991;padding:0 18px 14px 68px;line-height:1.5}
+.ember-api-feedback.ember-api-error{color:#efaaaa}
+#ember-api-keys [hidden]{display:none!important}
+@media(max-width:850px){.ember-api-summary{flex-wrap:wrap;gap:10px;padding:14px}.ember-api-info{flex-basis:calc(100% - 50px)}.ember-api-badge{margin-left:44px;flex:1}.ember-api-editor{margin-left:14px;margin-right:14px}.ember-api-feedback{padding-left:14px}.ember-api-controls{flex-wrap:wrap}}

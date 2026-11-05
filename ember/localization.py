@@ -11,6 +11,13 @@ import json
 from pathlib import Path
 
 STRINGS = {
+    'Подключите нужные сервисы. Остальные поля можно оставить пустыми.': 'Connect the services you use. Leave the others empty.',
+    'Добавить ключ': 'Add key',
+    'Изменить': 'Edit',
+    'Сохранён': 'Saved',
+    'Не указан': 'Not set',
+    'API-ключ': 'API key',
+
     'API-ключи': 'API keys',
     'Укажите ключи используемых сервисов. Сохранение не проверяет их действительность у провайдера.': 'Enter keys for the services you use. Saving a key does not validate it with the provider.',
     'Источник данных для добавления игр.': 'A data source for adding games.',
